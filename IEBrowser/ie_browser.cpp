@@ -1,10 +1,13 @@
 #include "stdafx.h"
 #include "ie_browser.h"
 
+#include "com_utility.h"
+
 // WebBrowser 控件的 CLSID
 const wchar_t* kWebBrowserCLSID = L"{8856F961-340A-11D0-A96B-00C04FD705A2}";
 
-IEBrowser::IEBrowser()
+IEBrowser::IEBrowser() :
+    delegate_(nullptr)
 {
 }
 
@@ -48,6 +51,9 @@ void IEBrowser::UnInitialze()
     {
         if (web_browser_)
         {
+            // 取消连接点
+            DispEventUnadvise(web_browser_, &DIID_DWebBrowserEvents2);
+
             // 停止正在进行的导航
             web_browser_->Stop();
 
@@ -60,6 +66,16 @@ void IEBrowser::UnInitialze()
 
         DestroyWindow();
     }
+}
+
+void IEBrowser::SetDelegate(Delegate * delegate)
+{
+    delegate_ = delegate;
+}
+
+void IEBrowser::RemoveDelegate()
+{
+    delegate_ = nullptr;
 }
 
 bool IEBrowser::Navigate(const wchar_t * url)
@@ -192,6 +208,25 @@ LRESULT IEBrowser::OnDestroy(unsigned int message, WPARAM w_param, LPARAM l_para
     return result;
 }
 
+void IEBrowser::OnBeforeNavigate2(
+    IDispatch * dispatch, 
+    VARIANT * url, 
+    VARIANT * flags, 
+    VARIANT * target_frame_name, 
+    VARIANT * post_data, 
+    VARIANT * headers, 
+    VARIANT_BOOL * cancel)
+{
+    if (delegate_)
+    {
+        delegate_->OnBeforeNavigate(
+            ComUtility::VTToString(url),
+            ComUtility::VTToString(target_frame_name),
+            ComUtility::VTToString(post_data),
+            ComUtility::VTToString(headers));
+    }
+}
+
 bool IEBrowser::CreateBrowserWindow(HWND parent_window_handle)
 {
     bool result = false;
@@ -250,6 +285,12 @@ bool IEBrowser::CreateWebBrowser()
 
         // 获取 IWebBrowser2 接口
         if (FAILED(QueryControl(IID_IWebBrowser2, (void**)&web_browser_)))
+        {
+            break;
+        }
+
+        // 建立连接点
+        if (FAILED(DispEventAdvise(web_browser_, &DIID_DWebBrowserEvents2)))
         {
             break;
         }

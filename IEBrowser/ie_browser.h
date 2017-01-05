@@ -9,15 +9,36 @@
 
 #pragma once
 
+#include <ExDispid.h>
+
 #define IEBROWSER_WINDOW_CLASS_NAME L"IEBrowserWindowClass"
 #define IEBROWSER_WINDOW_NAME L"IEBrowserWindow"
+#define IEBROWSER_DISP_ID 1
 
 ///
 // IE 浏览器类，封装 WebBrowser 控件
 ///
 class IEBrowser :
-    public CWindowImpl<IEBrowser, CAxWindow>
+    public CWindowImpl<IEBrowser, CAxWindow>,
+    public IDispEventImpl<IEBROWSER_DISP_ID, IEBrowser, &DIID_DWebBrowserEvents2, &LIBID_SHDocVw, 1, 0>
 {
+public:
+    ///
+    // 委托类，使用者继承这个类可以监听浏览器事件
+    ///
+    class Delegate
+    {
+    public:
+        ///
+        // 导航前触发的事件
+        ///
+        virtual void OnBeforeNavigate(
+            const wchar_t* url, 
+            const wchar_t* target_frame_name, 
+            const wchar_t* post_data, 
+            const wchar_t* headers) {};
+    };
+
 public:
     IEBrowser();
     ~IEBrowser();
@@ -31,6 +52,16 @@ public:
     // 反初始化
     ///
     void UnInitialze();
+
+    ///
+    // 添加委托处理者
+    ///
+    void SetDelegate(Delegate* delegate);
+
+    ///
+    // 移除委托处理者
+    ///
+    void RemoveDelegate();
 
     ///
     // 导航一个 url
@@ -80,6 +111,25 @@ private:
     ///
     LRESULT OnDestroy(unsigned int message, WPARAM w_param, LPARAM l_param, BOOL& is_handled);
 
+public:
+    // 以下实现 DIID_DWebBrowserEvents2 中的事件响应
+
+    BEGIN_SINK_MAP(IEBrowser)
+        SINK_ENTRY_EX(IEBROWSER_DISP_ID, DIID_DWebBrowserEvents2, DISPID_BEFORENAVIGATE2, OnBeforeNavigate2)
+    END_SINK_MAP()
+
+    ///
+    // 导航动作发生前触发
+    ///
+    void __stdcall OnBeforeNavigate2(
+        IDispatch* dispatch,
+        VARIANT* url,
+        VARIANT* flags,
+        VARIANT* target_frame_name,
+        VARIANT* post_data,
+        VARIANT* headers,
+        VARIANT_BOOL* cancel);
+
 private:
     // 以下是私有函数
 
@@ -105,6 +155,9 @@ private:
 
 private:
     // 以下是成员变量
+
+    // 委托处理器
+    Delegate* delegate_;
 
     // WebBrowser 控件的 IWebBrowser2 接口指针
     CComPtr<IWebBrowser2> web_browser_;

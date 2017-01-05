@@ -142,11 +142,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="com_utility.h" />
     <ClInclude Include="ie_browser.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="win_utility.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="com_utility.cpp" />
     <ClCompile Include="ie_browser.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stdafx.cpp">
