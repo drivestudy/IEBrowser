@@ -1,4 +1,7 @@
 #include "stdafx.h"
+
+#include <crtdbg.h>
+
 #include "ie_browser.h"
 #include "win_utility.h"
 
@@ -40,6 +43,8 @@ int APIENTRY wWinMain(
     LPWSTR command_line,
     int command_show)
 {
+    _CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
+
     ::CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
     _Module.Init(NULL, instance);
 

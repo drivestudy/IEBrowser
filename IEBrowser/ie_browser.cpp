@@ -15,20 +15,35 @@ bool IEBrowser::Initialize(HWND parent_window_handle)
 
     do
     {
-        if (!::IsWindow(parent_window_handle))
+        DWORD style = 0;
+        DWORD ex_style = 0;
+
+        if (::IsWindow(parent_window_handle))
         {
-            break;
+            // 使用者传入了父窗口, 则创建子窗口
+            style = WS_CHILD | WS_CLIPSIBLINGS;
+            ex_style = WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE;
+        }
+        else
+        {
+            // 使用者没有传入父窗口，则创建顶层窗口
+            parent_window_handle = nullptr;
+            style = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+            ex_style = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
         }
 
         if (Create(
             parent_window_handle,
-            0,
+            CWindow::rcDefault,
             IEBROWSER_WINDOW_NAME,
-            WS_CHILD | WS_CLIPSIBLINGS,
-            WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE) == nullptr)
+            style,
+            ex_style) == nullptr)
         {
             break;
         }
+
+        UpdateVisible();
+        UpdateSize();
 
         result = true;
 
@@ -63,4 +78,30 @@ LRESULT IEBrowser::OnDestroy(unsigned int message, WPARAM w_param, LPARAM l_para
     is_handled = FALSE;
 
     return result;
+}
+
+void IEBrowser::UpdateVisible()
+{
+    CWindow parent_window = GetParent();
+    if (parent_window.IsWindow())
+    {
+        ShowWindow(parent_window.IsWindowVisible() ? SW_SHOW : SW_HIDE);
+    }
+    else
+    {
+        ShowWindow(SW_SHOW);
+        UpdateWindow();
+    }
+}
+
+void IEBrowser::UpdateSize()
+{
+    CWindow parent_window = GetParent();
+    if (parent_window.IsWindow())
+    {
+        RECT parent_window_rect;
+        parent_window.GetClientRect(&parent_window_rect);
+        
+        MoveWindow(&parent_window_rect);
+    }
 }

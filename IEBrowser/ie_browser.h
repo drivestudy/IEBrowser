@@ -54,4 +54,17 @@ private:
     // WM_DESTORY
     ///
     LRESULT OnDestroy(unsigned int message, WPARAM w_param, LPARAM l_param, BOOL& is_handled);
+
+private:
+    // 以下是私有函数
+
+    ///
+    // 更新窗口的可见状态
+    ///
+    void UpdateVisible();
+
+    ///
+    // 更新窗口的大小
+    ///
+    void UpdateSize();
 };
