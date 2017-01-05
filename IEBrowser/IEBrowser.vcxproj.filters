@@ -25,6 +25,12 @@
     <ClInclude Include="win_utility.h">
       <Filter>utility</Filter>
     </ClInclude>
+    <ClInclude Include="ie_browser_thread.h">
+      <Filter>browser</Filter>
+    </ClInclude>
+    <ClInclude Include="ie_browser_setting.h">
+      <Filter>browser</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -41,6 +47,9 @@
     </ClCompile>
     <ClCompile Include="win_utility.cpp">
       <Filter>utility</Filter>
+    </ClCompile>
+    <ClCompile Include="ie_browser_thread.cpp">
+      <Filter>browser</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

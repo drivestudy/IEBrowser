@@ -11,6 +11,8 @@
 
 #include <ExDispid.h>
 
+struct IEBrowserSetting;
+
 #define IEBROWSER_WINDOW_CLASS_NAME L"IEBrowserWindowClass"
 #define IEBROWSER_WINDOW_NAME L"IEBrowserWindow"
 #define IEBROWSER_DISP_ID 1
@@ -89,7 +91,7 @@ public:
     ///
     // 初始化
     ///
-    bool Initialize(HWND parent_window_handle);
+    bool Initialize(IEBrowserSetting& setting);
 
     ///
     // 反初始化

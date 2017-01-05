@@ -2,6 +2,7 @@
 #include "ie_browser.h"
 
 #include "com_utility.h"
+#include "ie_browser_setting.h"
 
 // WebBrowser 控件的 CLSID
 const wchar_t* kWebBrowserCLSID = L"{8856F961-340A-11D0-A96B-00C04FD705A2}";
@@ -15,14 +16,14 @@ IEBrowser::~IEBrowser()
 {
 }
 
-bool IEBrowser::Initialize(HWND parent_window_handle)
+bool IEBrowser::Initialize(IEBrowserSetting& setting)
 {
     bool result = false;
 
     do
     {
         // 创建容器窗口
-        if (!CreateBrowserWindow(parent_window_handle))
+        if (!CreateBrowserWindow(setting.parent_window_handle_))
         {
             break;
         }

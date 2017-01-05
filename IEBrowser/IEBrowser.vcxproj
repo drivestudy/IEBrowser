@@ -144,12 +144,15 @@
   <ItemGroup>
     <ClInclude Include="com_utility.h" />
     <ClInclude Include="ie_browser.h" />
+    <ClInclude Include="ie_browser_setting.h" />
+    <ClInclude Include="ie_browser_thread.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="win_utility.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="com_utility.cpp" />
     <ClCompile Include="ie_browser.cpp" />
+    <ClCompile Include="ie_browser_thread.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
