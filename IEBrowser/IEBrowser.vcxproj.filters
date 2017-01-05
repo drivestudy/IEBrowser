@@ -5,10 +5,22 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="browser">
+      <UniqueIdentifier>{8358dddb-6f2c-4c5f-a19a-8476e9ce2735}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test">
+      <UniqueIdentifier>{b8995b56-2ccd-4abf-917f-c3b4e1cc8f3d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
       <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="ie_browser.h">
+      <Filter>browser</Filter>
+    </ClInclude>
+    <ClInclude Include="win_utility.h">
+      <Filter>test</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -17,6 +29,12 @@
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="ie_browser.cpp">
+      <Filter>browser</Filter>
+    </ClCompile>
+    <ClCompile Include="win_utility.cpp">
+      <Filter>test</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
