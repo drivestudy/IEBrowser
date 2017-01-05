@@ -14,6 +14,7 @@ void Run(HINSTANCE instance, const wchar_t* command_line, int command_show)
     // 测试窗口的创建
     IEBrowser ie_browser;
     ie_browser.Initialize(frame_window);
+    ie_browser.Navigate(L"www.google.com");
 
     ::SetTimer(frame_window, 0, 3000, nullptr);
 

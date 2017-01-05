@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "ie_browser.h"
 
+const wchar_t* kWebBrowserCLSID = L"{8856F961-340A-11D0-A96B-00C04FD705A2}";
+
 IEBrowser::IEBrowser()
 {
 }
@@ -10,6 +12,96 @@ IEBrowser::~IEBrowser()
 }
 
 bool IEBrowser::Initialize(HWND parent_window_handle)
+{
+    bool result = false;
+
+    do
+    {
+        // 创建容器窗口
+        if (!CreateBrowserWindow(parent_window_handle))
+        {
+            break;
+        }
+
+        // 创建 WebBrowser 控件
+        if (!CreateWebBrowser())
+        {
+            break;
+        }
+
+        result = true;
+
+    } while (false);
+
+    if (!result)
+    {
+        UnInitialze();
+    }
+
+    return result;
+}
+
+void IEBrowser::UnInitialze()
+{
+    if (IsWindow())
+    {
+        if (web_browser_)
+        {
+            web_browser_->Stop();
+            web_browser_->ExecWB(OLECMDID_CLOSE, OLECMDEXECOPT_DONTPROMPTUSER, 0, 0);
+            web_browser_ = nullptr;
+        }
+
+        DestroyWindow();
+    }
+}
+
+bool IEBrowser::Navigate(const wchar_t * url)
+{
+    bool result = false;
+
+    do
+    {
+        if (web_browser_ == nullptr)
+        {
+            break;
+        }
+
+        CComVariant url_var(url);
+
+        if (FAILED(web_browser_->Navigate2(&url_var, nullptr, nullptr, nullptr, nullptr)))
+        {
+            break;
+        }
+
+        result = true;
+
+    } while (false);
+
+    return result;
+}
+
+LRESULT IEBrowser::OnCreate(unsigned int message, WPARAM w_param, LPARAM l_param, BOOL & is_handled)
+{
+    LRESULT result = 0;
+
+    result = DefWindowProc(message, w_param, l_param);
+    is_handled = FALSE;
+
+    return result;
+}
+
+LRESULT IEBrowser::OnDestroy(unsigned int message, WPARAM w_param, LPARAM l_param, BOOL & is_handled)
+{
+    LRESULT result = 0;
+
+    result = DefWindowProc(message, w_param, l_param);
+    is_handled = FALSE;
+
+    return result;
+}
+
+bool IEBrowser::CreateBrowserWindow(HWND parent_window_handle)
 {
     bool result = false;
 
@@ -32,6 +124,7 @@ bool IEBrowser::Initialize(HWND parent_window_handle)
             ex_style = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
         }
 
+        // 创建容器窗口
         if (Create(
             parent_window_handle,
             CWindow::rcDefault,
@@ -52,30 +145,26 @@ bool IEBrowser::Initialize(HWND parent_window_handle)
     return result;
 }
 
-void IEBrowser::UnInitialze()
+bool IEBrowser::CreateWebBrowser()
 {
-    if (IsWindow())
+    bool result = false;
+
+    do
     {
-        DestroyWindow();
-    }
-}
+        if (FAILED(CreateControl(kWebBrowserCLSID)))
+        {
+            break;
+        }
 
-LRESULT IEBrowser::OnCreate(unsigned int message, WPARAM w_param, LPARAM l_param, BOOL & is_handled)
-{
-    LRESULT result = 0;
+        // 获取 IWebBrowser2 接口
+        if (FAILED(QueryControl(IID_IWebBrowser2, (void**)&web_browser_)))
+        {
+            break;
+        }
 
-    result = DefWindowProc(message, w_param, l_param);
-    is_handled = FALSE;
+        result = true;
 
-    return result;
-}
-
-LRESULT IEBrowser::OnDestroy(unsigned int message, WPARAM w_param, LPARAM l_param, BOOL & is_handled)
-{
-    LRESULT result = 0;
-
-    result = DefWindowProc(message, w_param, l_param);
-    is_handled = FALSE;
+    } while (false);
 
     return result;
 }

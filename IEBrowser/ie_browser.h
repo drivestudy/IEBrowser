@@ -32,6 +32,11 @@ public:
     ///
     void UnInitialze();
 
+    ///
+    // 导航一个 url
+    ///
+    bool Navigate(const wchar_t* url);
+
 public:
     // 超类化 CAxWindow, CAxWindow 可以作为 ActiveX 控件的容器
     // 这里对 CAxWindow 进行超类化，使得 BrowserView 类也能够作为 ActiveX 控件的容器
@@ -59,6 +64,16 @@ private:
     // 以下是私有函数
 
     ///
+    // 创建容器窗口
+    ///
+    bool CreateBrowserWindow(HWND parent_window_handle);
+
+    ///
+    // 创建 WebBrowser 控件
+    ///
+    bool CreateWebBrowser();
+
+    ///
     // 更新窗口的可见状态
     ///
     void UpdateVisible();
@@ -67,4 +82,10 @@ private:
     // 更新窗口的大小
     ///
     void UpdateSize();
+
+private:
+    // 以下是成员变量
+
+    // WebBrowser 控件的 IWebBrowser2 接口指针
+    CComPtr<IWebBrowser2> web_browser_;
 };
