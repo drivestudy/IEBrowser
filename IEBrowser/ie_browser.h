@@ -33,10 +33,53 @@ public:
         // 导航前触发的事件
         ///
         virtual void OnBeforeNavigate(
+            bool is_main_frame,
             const wchar_t* url, 
             const wchar_t* target_frame_name, 
             const wchar_t* post_data, 
             const wchar_t* headers) {};
+
+        ///
+        // 导航完成事件
+        ///
+        virtual void OnNativeComplete(bool is_main_frame, const wchar_t* url) {};
+
+        ///
+        // 导航错误事件
+        ///
+        virtual void OnNavigateError(
+            bool is_main_frame, 
+            const wchar_t* url, 
+            const wchar_t* target_frame_name, 
+            long status_code) {};
+
+        ///
+        // 文档加载完成事件
+        ///
+        virtual void OnDocumentComplete(bool is_main_frame, const wchar_t* url) {};
+
+        ///
+        // 标题改变事件
+        ///
+        virtual void OnTitleChange(const wchar_t* title) {};
+
+        ///
+        // status text 改变事件
+        ///
+        virtual void OnStatusTextChange(const wchar_t* status_text) {};
+
+        ///
+        // command state 改变事件
+        ///
+        virtual void OnCommandStateChange(
+            bool can_refresh, 
+            bool can_go_forward, 
+            bool can_go_back) {};
+
+        ///
+        // 进度改变事件
+        ///
+        virtual void OnProgressChange(long progress, long max_progress) {};
     };
 
 public:
@@ -116,6 +159,13 @@ public:
 
     BEGIN_SINK_MAP(IEBrowser)
         SINK_ENTRY_EX(IEBROWSER_DISP_ID, DIID_DWebBrowserEvents2, DISPID_BEFORENAVIGATE2, OnBeforeNavigate2)
+        SINK_ENTRY_EX(IEBROWSER_DISP_ID, DIID_DWebBrowserEvents2, DISPID_NAVIGATECOMPLETE2, OnNavigateComplete2)
+        SINK_ENTRY_EX(IEBROWSER_DISP_ID, DIID_DWebBrowserEvents2, DISPID_NAVIGATEERROR, OnNavigateError)
+        SINK_ENTRY_EX(IEBROWSER_DISP_ID, DIID_DWebBrowserEvents2, DISPID_DOCUMENTCOMPLETE, OnDocumentComplete)
+        SINK_ENTRY_EX(IEBROWSER_DISP_ID, DIID_DWebBrowserEvents2, DISPID_TITLECHANGE, OnTitleChange)
+        SINK_ENTRY_EX(IEBROWSER_DISP_ID, DIID_DWebBrowserEvents2, DISPID_STATUSTEXTCHANGE, OnStatusTextChange)
+        SINK_ENTRY_EX(IEBROWSER_DISP_ID, DIID_DWebBrowserEvents2, DISPID_COMMANDSTATECHANGE, OnCommandStateChange)
+        SINK_ENTRY_EX(IEBROWSER_DISP_ID, DIID_DWebBrowserEvents2, DISPID_PROGRESSCHANGE, OnProgressChange)
     END_SINK_MAP()
 
     ///
@@ -129,6 +179,46 @@ public:
         VARIANT* post_data,
         VARIANT* headers,
         VARIANT_BOOL* cancel);
+
+    ///
+    // 导航完成后触发此事件
+    ///
+    void __stdcall OnNavigateComplete2(IDispatch* dispatch, VARIANT* url);
+
+    ///
+    // 导航错误后触发此事件
+    ///
+    void __stdcall OnNavigateError(
+        IDispatch* dispatch,
+        VARIANT* url,
+        VARIANT* target_frame_name,
+        VARIANT* status_code,
+        VARIANT_BOOL* cancel);
+
+    ///
+    // 页面加载完成后触发此事件
+    ///
+    void __stdcall OnDocumentComplete(IDispatch* dispatch, VARIANT* url);
+
+    ///
+    // 页面标题改变时触发此事件
+    ///
+    void __stdcall OnTitleChange(BSTR title);
+
+    ///
+    // status text 改变时触发此事件
+    ///
+    void __stdcall OnStatusTextChange(BSTR status_text);
+
+    ///
+    // command status 改变时触发此事件
+    ///
+    void __stdcall OnCommandStateChange(long command, VARIANT_BOOL enable);
+
+    ///
+    // 进度改变时触发此事件
+    ///
+    void __stdcall OnProgressChange(long progress, long max_progress);
 
 private:
     // 以下是私有函数
@@ -152,6 +242,11 @@ private:
     // 更新窗口的大小
     ///
     void UpdateSize();
+
+    ///
+    // 判断 dispatch 是否是 main frame
+    ///
+    bool IsMainFrame(IDispatch* dispatch);
 
 private:
     // 以下是成员变量

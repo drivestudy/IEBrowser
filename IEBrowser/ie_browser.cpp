@@ -220,10 +220,96 @@ void IEBrowser::OnBeforeNavigate2(
     if (delegate_)
     {
         delegate_->OnBeforeNavigate(
+            IsMainFrame(dispatch),
             ComUtility::VTToString(url),
             ComUtility::VTToString(target_frame_name),
             ComUtility::VTToString(post_data),
             ComUtility::VTToString(headers));
+    }
+}
+
+void IEBrowser::OnNavigateComplete2(IDispatch * dispatch, VARIANT * url)
+{
+    if (delegate_)
+    {
+        delegate_->OnNativeComplete(IsMainFrame(dispatch), ComUtility::VTToString(url));
+    }
+}
+
+void IEBrowser::OnNavigateError(
+    IDispatch * dispatch, 
+    VARIANT * url, 
+    VARIANT * target_frame_name, 
+    VARIANT * status_code, 
+    VARIANT_BOOL * cancel)
+{
+    if (delegate_)
+    {
+        delegate_->OnNavigateError(
+            IsMainFrame(dispatch), 
+            ComUtility::VTToString(url), 
+            ComUtility::VTToString(target_frame_name), 
+            ComUtility::VTToLong(status_code));
+    }
+}
+
+void IEBrowser::OnDocumentComplete(IDispatch * dispatch, VARIANT * url)
+{
+    if (delegate_)
+    {
+        delegate_->OnDocumentComplete(IsMainFrame(dispatch), ComUtility::VTToString(url));
+    }
+}
+
+void IEBrowser::OnTitleChange(BSTR title)
+{
+    if (delegate_)
+    {
+        delegate_->OnTitleChange(title);
+    }
+}
+
+void IEBrowser::OnStatusTextChange(BSTR status_text)
+{
+    if (delegate_)
+    {
+        delegate_->OnStatusTextChange(status_text);
+    }
+}
+
+void IEBrowser::OnCommandStateChange(long command, VARIANT_BOOL enable)
+{
+    if (delegate_)
+    {
+        bool can_go_forward = false;
+        bool can_go_back = false;
+        bool can_refresh = false;
+
+        if (enable == VARIANT_TRUE)
+        {
+            if (command == CSC_UPDATECOMMANDS)
+            {
+                can_refresh = true;
+            }
+            else if (command == CSC_NAVIGATEBACK)
+            {
+                can_go_forward = true;
+            }
+            else if (command == CSC_NAVIGATEFORWARD)
+            {
+                can_go_forward = true;
+            }
+        }
+
+        delegate_->OnCommandStateChange(can_refresh, can_go_forward, can_go_back);
+    }
+}
+
+void IEBrowser::OnProgressChange(long progress, long max_progress)
+{
+    if (delegate_)
+    {
+        delegate_->OnProgressChange(progress, max_progress);
     }
 }
 
@@ -326,4 +412,39 @@ void IEBrowser::UpdateSize()
         
         MoveWindow(&parent_window_rect);
     }
+}
+
+bool IEBrowser::IsMainFrame(IDispatch * dispatch)
+{
+    bool result = false;
+
+    for (;;)
+    {
+        if (dispatch == nullptr)
+        {
+            break;
+        }
+
+        if (web_browser_ == nullptr)
+        {
+            break;
+        }
+
+        CComPtr<IDispatch> top_dispatch;
+        if (FAILED(web_browser_->QueryInterface(IID_IDispatch, (void**)&top_dispatch)))
+        {
+            break;
+        }
+
+        if (!top_dispatch.IsEqualObject(dispatch))
+        {
+            break;
+        }
+
+        result = true;
+
+        break;
+    }
+
+    return result;
 }

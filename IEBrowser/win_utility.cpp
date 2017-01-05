@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "win_utility.h"
 
-const wchar_t* kFrameWindowClassName = L"TestFrameWindowClass";
+const wchar_t* kFrameWindowClassName = L"FrameWindowClass";
 
 LRESULT CALLBACK DefaultWindowProc(
     HWND window_handle, 

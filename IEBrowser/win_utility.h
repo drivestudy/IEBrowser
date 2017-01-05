@@ -2,5 +2,5 @@
 
 namespace WinUtility
 {
-    HWND CreateFrameWindow(const wchar_t* window_name = L"TestFrameWindow");
+    HWND CreateFrameWindow(const wchar_t* window_name = L"FrameWindow");
 }

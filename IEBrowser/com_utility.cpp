@@ -1,221 +1,218 @@
 #include "stdafx.h"
 #include "com_utility.h"
 
-namespace ComUtility
+bool ComUtility::VTToBool(VARIANT * var, bool default_ret)
 {
-    bool VTToBool(VARIANT * var, bool default_ret)
+    bool result = default_ret;
+
+    for (;;)
     {
-        bool result = default_ret;
-
-        for (;;)
+        if (var == nullptr)
         {
-            if (var == nullptr)
-            {
-                break;
-            }
-
-            if (var->vt != VT_BOOL)
-            {
-                break;
-            }
-
-            result = var->boolVal == VARIANT_TRUE;
-
             break;
         }
 
-        return result;
-    }
-
-    short VTToShort(VARIANT * var, short default_ret)
-    {
-        short result = default_ret;
-
-        for (;;)
+        if (var->vt != VT_BOOL)
         {
-            if (var == nullptr)
-            {
-                break;
-            }
-
-            if (var->vt != VT_I2)
-            {
-                break;
-            }
-
-            result = var->iVal;
-
             break;
         }
 
-        return result;
+        result = var->boolVal == VARIANT_TRUE;
+
+        break;
     }
 
-    int VTToInt(VARIANT * var, int default_ret)
+    return result;
+}
+
+short ComUtility::VTToShort(VARIANT * var, short default_ret)
+{
+    short result = default_ret;
+
+    for (;;)
     {
-        int result = default_ret;
-
-        for (;;)
+        if (var == nullptr)
         {
-            if (var == nullptr)
-            {
-                break;
-            }
-
-            if (var->vt != VT_INT)
-            {
-                break;
-            }
-
-            result = var->intVal;
-
             break;
         }
 
-        return result;
-    }
-
-    unsigned int VTToUInt(VARIANT * var, unsigned int default_ret)
-    {
-        unsigned int result = default_ret;
-
-        for (;;)
+        if (var->vt != VT_I2)
         {
-            if (var == nullptr)
-            {
-                break;
-            }
-
-            if (var->vt != VT_UINT)
-            {
-                break;
-            }
-
-            result = var->uintVal;
-
             break;
         }
 
-        return result;
+        result = var->iVal;
+
+        break;
     }
 
-    long VTToLong(VARIANT * var, long default_ret)
+    return result;
+}
+
+int ComUtility::VTToInt(VARIANT * var, int default_ret)
+{
+    int result = default_ret;
+
+    for (;;)
     {
-        long result = default_ret;
-
-        for (;;)
+        if (var == nullptr)
         {
-            if (var == nullptr)
-            {
-                break;
-            }
-
-            if (var->vt != VT_I4)
-            {
-                break;
-            }
-
-            result = var->lVal;
-
             break;
         }
 
-        return result;
-    }
-
-    unsigned long VTToULong(VARIANT * var, unsigned long default_ret)
-    {
-        long result = default_ret;
-
-        for (;;)
+        if (var->vt != VT_INT)
         {
-            if (var == nullptr)
-            {
-                break;
-            }
-
-            if (var->vt != VT_UI4)
-            {
-                break;
-            }
-
-            result = var->ulVal;
-
             break;
         }
 
-        return result;
+        result = var->intVal;
+
+        break;
     }
 
-    float VTToFloat(VARIANT * var, float default_ret)
+    return result;
+}
+
+unsigned int ComUtility::VTToUInt(VARIANT * var, unsigned int default_ret)
+{
+    unsigned int result = default_ret;
+
+    for (;;)
     {
-        float result = default_ret;
-
-        for (;;)
+        if (var == nullptr)
         {
-            if (var == nullptr)
-            {
-                break;
-            }
-
-            if (var->vt != VT_R4)
-            {
-                break;
-            }
-
-            result = var->fltVal;
-
             break;
         }
 
-        return result;
-    }
-
-    double VTToDouble(VARIANT * var, double default_ret)
-    {
-        double result = default_ret;
-
-        for (;;)
+        if (var->vt != VT_UINT)
         {
-            if (var == nullptr)
-            {
-                break;
-            }
-
-            if (var->vt != VT_R8)
-            {
-                break;
-            }
-
-            result = var->dblVal;
-
             break;
         }
 
-        return result;
+        result = var->uintVal;
+
+        break;
     }
 
-    const wchar_t * VTToString(VARIANT * var, const wchar_t * default_ret)
+    return result;
+}
+
+long ComUtility::VTToLong(VARIANT * var, long default_ret)
+{
+    long result = default_ret;
+
+    for (;;)
     {
-        if (var == nullptr || var->vt != VT_BSTR)
+        if (var == nullptr)
         {
-            return default_ret;
+            break;
         }
-        else
+
+        if (var->vt != VT_I4)
         {
-            return var->bstrVal;
+            break;
         }
+
+        result = var->lVal;
+
+        break;
     }
 
-    IDispatch * VTToIDispatch(VARIANT * var)
+    return result;
+}
+
+unsigned long ComUtility::VTToULong(VARIANT * var, unsigned long default_ret)
+{
+    long result = default_ret;
+
+    for (;;)
     {
-        if (var == nullptr || var->vt != VT_DISPATCH)
+        if (var == nullptr)
         {
-            return nullptr;
+            break;
         }
-        else
+
+        if (var->vt != VT_UI4)
         {
-            return var->pdispVal;
+            break;
         }
+
+        result = var->ulVal;
+
+        break;
+    }
+
+    return result;
+}
+
+float ComUtility::VTToFloat(VARIANT * var, float default_ret)
+{
+    float result = default_ret;
+
+    for (;;)
+    {
+        if (var == nullptr)
+        {
+            break;
+        }
+
+        if (var->vt != VT_R4)
+        {
+            break;
+        }
+
+        result = var->fltVal;
+
+        break;
+    }
+
+    return result;
+}
+
+double ComUtility::VTToDouble(VARIANT * var, double default_ret)
+{
+    double result = default_ret;
+
+    for (;;)
+    {
+        if (var == nullptr)
+        {
+            break;
+        }
+
+        if (var->vt != VT_R8)
+        {
+            break;
+        }
+
+        result = var->dblVal;
+
+        break;
+    }
+
+    return result;
+}
+
+const wchar_t * ComUtility::VTToString(VARIANT * var, const wchar_t * default_ret)
+{
+    if (var == nullptr || var->vt != VT_BSTR)
+    {
+        return default_ret;
+    }
+    else
+    {
+        return var->bstrVal;
+    }
+}
+
+IDispatch * ComUtility::VTToIDispatch(VARIANT * var)
+{
+    if (var == nullptr || var->vt != VT_DISPATCH)
+    {
+        return nullptr;
+    }
+    else
+    {
+        return var->pdispVal;
     }
 }
