@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ie_browser.h"
 
+// WebBrowser 控件的 CLSID
 const wchar_t* kWebBrowserCLSID = L"{8856F961-340A-11D0-A96B-00C04FD705A2}";
 
 IEBrowser::IEBrowser()
@@ -47,8 +48,13 @@ void IEBrowser::UnInitialze()
     {
         if (web_browser_)
         {
+            // 停止正在进行的导航
             web_browser_->Stop();
+
+            // 通知 web_browser 控件关闭自己
             web_browser_->ExecWB(OLECMDID_CLOSE, OLECMDEXECOPT_DONTPROMPTUSER, 0, 0);
+
+            // 释放引用计数
             web_browser_ = nullptr;
         }
 
@@ -67,12 +73,97 @@ bool IEBrowser::Navigate(const wchar_t * url)
             break;
         }
 
+        if (url == nullptr)
+        {
+            break;
+        }
+
         CComVariant url_var(url);
 
         if (FAILED(web_browser_->Navigate2(&url_var, nullptr, nullptr, nullptr, nullptr)))
         {
             break;
         }
+
+        result = true;
+
+    } while (false);
+
+    return result;
+}
+
+bool IEBrowser::Stop()
+{
+    bool result = false;
+
+    do
+    {
+        if (web_browser_ == nullptr)
+        {
+            break;
+        }
+
+        web_browser_->Stop();
+
+        result = true;
+
+    } while (false);
+
+    return result;
+}
+
+bool IEBrowser::Refresh()
+{
+    bool result = false;
+
+    do
+    {
+        if (web_browser_ == nullptr)
+        {
+            break;
+        }
+
+        web_browser_->Refresh();
+
+        result = true;
+
+    } while (false);
+
+    return result;
+}
+
+bool IEBrowser::GoForward()
+{
+    bool result = false;
+
+    do
+    {
+        if (web_browser_ == nullptr)
+        {
+            break;
+        }
+
+        web_browser_->GoForward();
+
+        result = true;
+
+    } while (false);
+
+    return result;
+}
+
+bool IEBrowser::GoBack()
+{
+    bool result = false;
+
+    do
+    {
+        if (web_browser_ == nullptr)
+        {
+            break;
+        }
+
+        web_browser_->GoBack();
 
         result = true;
 
@@ -151,6 +242,7 @@ bool IEBrowser::CreateWebBrowser()
 
     do
     {
+        // 创建 WebBrowser 控件
         if (FAILED(CreateControl(kWebBrowserCLSID)))
         {
             break;

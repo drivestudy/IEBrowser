@@ -37,6 +37,26 @@ public:
     ///
     bool Navigate(const wchar_t* url);
 
+    ///
+    // 停止正在进行的导航操作
+    ///
+    bool Stop();
+
+    ///
+    // 刷新当前页面
+    ///
+    bool Refresh();
+
+    ///
+    // 前进操作
+    ///
+    bool GoForward();
+
+    ///
+    // 后退操作
+    ///
+    bool GoBack();
+
 public:
     // 超类化 CAxWindow, CAxWindow 可以作为 ActiveX 控件的容器
     // 这里对 CAxWindow 进行超类化，使得 BrowserView 类也能够作为 ActiveX 控件的容器
