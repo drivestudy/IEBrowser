@@ -22,22 +22,6 @@ class IEBrowser;
 class IEBrowserThread :
     public std::enable_shared_from_this<IEBrowserThread>
 {
-private:
-    ///
-    // 线程当前状态
-    ///
-    enum ThreadState
-    {
-        // 尚未初始化
-        THREAD_STATE_UNINIT,
-
-        // 初始化成功
-        THREAD_STATE_INIT_SUCCEED,
-
-        // 初始化失败
-        THREAD_STATE_INIT_FAILED,
-    };
-
 public:
     IEBrowserThread();
     ~IEBrowserThread();
@@ -58,25 +42,21 @@ private:
     ///
     // 线程函数，运行在单独线程中
     ///
-    static void BrowserThreadProc(std::shared_ptr<IEBrowserThread> self, IEBrowserSetting setting);
+    static void BrowserThreadProc(
+        std::shared_ptr<IEBrowserThread> self, 
+        IEBrowserSetting setting, 
+        unsigned int init_thread_id);
 
     ///
-    // 初始化工作线程，必须在工作线程里调用
+    // 等待指定 Window 消息
+    // 通过 while(::GetMessage()) 的方式来等待，不会阻塞调用方的消息循环
     ///
-    bool InitBrowserThread(IEBrowserSetting& setting);
+    void WaitForWindowMessage(UINT message, WPARAM* w_param = nullptr, LPARAM* l_param = nullptr);
 
 private:
+
     // 线程对象
     std::unique_ptr<std::thread> thread_;
-
-    // 线程当前状态
-    ThreadState thread_state_;
-
-    // 互斥量，用于保护 thread_state_ 成员变量
-    std::mutex thread_state_mutex_;
-
-    // 条件变量，用于等待 thread_state_ 的状态切换
-    std::condition_variable thread_state_condition_;
 
     // 线程中运行的 IEBrowser 对象
     std::unique_ptr<IEBrowser> browser_;

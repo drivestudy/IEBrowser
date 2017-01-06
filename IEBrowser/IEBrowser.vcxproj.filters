@@ -31,6 +31,9 @@
     <ClInclude Include="ie_browser_setting.h">
       <Filter>browser</Filter>
     </ClInclude>
+    <ClInclude Include="ie_browser_window_message.h">
+      <Filter>browser</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

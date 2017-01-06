@@ -7,6 +7,18 @@
 // WebBrowser 控件的 CLSID
 const wchar_t* kWebBrowserCLSID = L"{8856F961-340A-11D0-A96B-00C04FD705A2}";
 
+// 窗口的 style 取值
+enum IEBrowserWindowStyle
+{
+    // Popup 类型窗口的 style 和 ex_style
+    WS_IEBROWSER_POPUP = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
+    WS_EX_IEBROWSER_POPUP = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
+
+    // Child 类型窗口的 style 和 ex_style
+    WS_IEBROWSER_CHILD = WS_CHILD | WS_CLIPSIBLINGS,
+    WS_EX_IEBROWSER_CHILD = WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE,
+};
+
 IEBrowser::IEBrowser() :
     delegate_(nullptr),
     is_being_destroyed_(false)
@@ -68,7 +80,7 @@ void IEBrowser::UnInitialze()
 
         // 先解除父子关系，然后销毁窗口
         SetParent(nullptr);
-        SetWindowLong(GWL_STYLE, WS_POPUP | WS_CLIPSIBLINGS);
+        SetWindowLong(GWL_STYLE, WS_IEBROWSER_POPUP);
         DestroyWindow();
     }
 }
@@ -337,37 +349,21 @@ bool IEBrowser::CreateBrowserWindow(HWND parent_window_handle)
 
     do
     {
-        DWORD style = 0;
-        DWORD ex_style = 0;
-
-        if (::IsWindow(parent_window_handle))
-        {
-            // 使用者传入了父窗口, 则创建子窗口
-            style = WS_POPUP | WS_CLIPSIBLINGS;
-            ex_style = WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE;
-        }
-        else
-        {
-            // 使用者没有传入父窗口，则创建顶层窗口
-            parent_window_handle = nullptr;
-            style = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-            ex_style = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-        }
-
         // 创建容器窗口
         if (Create(
             nullptr,
             CWindow::rcDefault,
             IEBROWSER_WINDOW_NAME,
-            style,
-            ex_style) == nullptr)
+            WS_IEBROWSER_POPUP,
+            WS_EX_IEBROWSER_POPUP) == nullptr)
         {
             break;
         }
 
         if (::IsWindow(parent_window_handle))
         {
-            SetWindowLong(GWL_STYLE, WS_CHILD | WS_CLIPSIBLINGS);
+            SetWindowLong(GWL_STYLE, WS_IEBROWSER_CHILD);
+            SetWindowLong(GWL_EXSTYLE, WS_EX_IEBROWSER_CHILD);
             SetParent(parent_window_handle);
         }
 

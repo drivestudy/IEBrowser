@@ -35,7 +35,7 @@ void Run(HINSTANCE instance, const wchar_t* command_line, int command_show)
 
             DestroyWindow(frame_window);
 
-            break;
+            ::PostQuitMessage(0);
         }
     }
 }
