@@ -2,7 +2,8 @@
 
 ## TODO
 
-- 编写 BrowserManager 类，用来管理 IEBrowserThread
+- 编写进程间通信用的一对多通信器;
+- ~~编写 BrowserManager 类，用来管理 IEBrowserThread~~
 
 ## Bug
 

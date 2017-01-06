@@ -34,6 +34,12 @@
     <ClInclude Include="ie_browser_window_message.h">
       <Filter>browser</Filter>
     </ClInclude>
+    <ClInclude Include="ie_browser_manager.h">
+      <Filter>browser</Filter>
+    </ClInclude>
+    <ClInclude Include="id_generator.h">
+      <Filter>utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -53,6 +59,12 @@
     </ClCompile>
     <ClCompile Include="ie_browser_thread.cpp">
       <Filter>browser</Filter>
+    </ClCompile>
+    <ClCompile Include="ie_browser_manager.cpp">
+      <Filter>browser</Filter>
+    </ClCompile>
+    <ClCompile Include="id_generator.cpp">
+      <Filter>utility</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

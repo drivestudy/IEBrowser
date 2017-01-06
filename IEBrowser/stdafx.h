@@ -1,6 +1,7 @@
 #pragma once
 
 // C 头文件
+#include <limits.h>
 #include <malloc.h>
 #include <memory.h>
 #include <stdlib.h>
@@ -9,6 +10,7 @@
 // C++ 头文件
 #include <cassert>
 #include <condition_variable>
+#include <deque>
 #include <list>
 #include <map>
 #include <memory>

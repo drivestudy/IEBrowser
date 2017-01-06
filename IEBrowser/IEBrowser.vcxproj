@@ -143,7 +143,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="com_utility.h" />
+    <ClInclude Include="id_generator.h" />
     <ClInclude Include="ie_browser.h" />
+    <ClInclude Include="ie_browser_manager.h" />
     <ClInclude Include="ie_browser_setting.h" />
     <ClInclude Include="ie_browser_thread.h" />
     <ClInclude Include="ie_browser_window_message.h" />
@@ -152,7 +154,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="com_utility.cpp" />
+    <ClCompile Include="id_generator.cpp" />
     <ClCompile Include="ie_browser.cpp" />
+    <ClCompile Include="ie_browser_manager.cpp" />
     <ClCompile Include="ie_browser_thread.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stdafx.cpp">

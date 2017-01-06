@@ -2,7 +2,8 @@
 
 #include <crtdbg.h>
 
-#include "ie_browser_thread.h"
+#include "ie_browser_manager.h"
+#include "ie_browser_setting.h"
 #include "win_utility.h"
 
 CComModule _Module;
@@ -11,12 +12,13 @@ void Run(HINSTANCE instance, const wchar_t* command_line, int command_show)
 {
     HWND frame_window = WinUtility::CreateFrameWindow();
 
-    // ≤‚ ‘¥¥Ω® IEBrowserThread
-    std::shared_ptr<IEBrowserThread> browser_thread(new IEBrowserThread);
-
+    // ≤‚ ‘¥¥Ω®‰Ø¿¿∆˜
+    IEBrowserManager* browser_manager = IEBrowserManager::GetInstance();
+    unsigned int browser_id;
     IEBrowserSetting setting;
     setting.parent_window_handle_ = frame_window;
-    browser_thread->Initialize(setting);
+    browser_manager->CreateBrowser(setting, browser_id);
+
 
     UINT_PTR timer_id = ::SetTimer(nullptr, 0, 5000, nullptr);
 
@@ -30,8 +32,8 @@ void Run(HINSTANCE instance, const wchar_t* command_line, int command_show)
         {
             ::KillTimer(nullptr, timer_id);
 
-            // ≤‚ ‘œ˙ªŸ IEBrowserThread
-            browser_thread->UnInitialize();
+            // ≤‚ ‘œ˙ªŸ‰Ø¿¿∆˜
+            browser_manager->DestroyBrowser(browser_id);
 
             DestroyWindow(frame_window);
 
