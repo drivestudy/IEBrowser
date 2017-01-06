@@ -65,10 +65,11 @@ void IEBrowserThread::UnInitialize()
         assert(thread_id != 0);
 
         // 向线程发送退出命令
-        ::PostThreadMessage(thread_id, WM_QUIT, 0, 0);
-
-        // 等待线程退出
-        thread_->join();
+        if (::PostThreadMessage(thread_id, WM_QUIT, 0, 0) != 0)
+        {
+            // 等待线程退出
+            thread_->join();
+        }
     }
 }
 

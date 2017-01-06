@@ -258,4 +258,7 @@ private:
 
     // WebBrowser 控件的 IWebBrowser2 接口指针
     CComPtr<IWebBrowser2> web_browser_;
+
+    // 是否已经进入过 OnDestroy 方法
+    bool is_being_destroyed_;
 };

@@ -9,10 +9,13 @@ CComModule _Module;
 
 void Run(HINSTANCE instance, const wchar_t* command_line, int command_show)
 {
+    HWND frame_window = WinUtility::CreateFrameWindow();
+
     // ≤‚ ‘¥¥Ω® IEBrowserThread
     std::shared_ptr<IEBrowserThread> browser_thread(new IEBrowserThread);
 
     IEBrowserSetting setting;
+    setting.parent_window_handle_ = frame_window;
     browser_thread->Initialize(setting);
 
     UINT_PTR timer_id = ::SetTimer(nullptr, 0, 5000, nullptr);
@@ -29,6 +32,8 @@ void Run(HINSTANCE instance, const wchar_t* command_line, int command_show)
 
             // ≤‚ ‘œ˙ªŸ IEBrowserThread
             browser_thread->UnInitialize();
+
+            DestroyWindow(frame_window);
 
             break;
         }

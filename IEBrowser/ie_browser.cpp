@@ -8,7 +8,8 @@
 const wchar_t* kWebBrowserCLSID = L"{8856F961-340A-11D0-A96B-00C04FD705A2}";
 
 IEBrowser::IEBrowser() :
-    delegate_(nullptr)
+    delegate_(nullptr),
+    is_being_destroyed_(false)
 {
 }
 
@@ -65,6 +66,9 @@ void IEBrowser::UnInitialze()
             web_browser_ = nullptr;
         }
 
+        // 先解除父子关系，然后销毁窗口
+        SetParent(nullptr);
+        SetWindowLong(GWL_STYLE, WS_POPUP | WS_CLIPSIBLINGS);
         DestroyWindow();
     }
 }
@@ -203,8 +207,21 @@ LRESULT IEBrowser::OnDestroy(unsigned int message, WPARAM w_param, LPARAM l_para
 {
     LRESULT result = 0;
 
-    result = DefWindowProc(message, w_param, l_param);
-    is_handled = FALSE;
+    do
+    {
+        // 不知道是什么原因，OnDestroy 方法会进入两次
+        // 如果设置了父窗口，而 OnDestroy 中两次调用了 DefWindowProc 的话，线程会卡死
+        if (is_being_destroyed_)
+        {
+            break;
+        }
+
+        is_being_destroyed_ = true;
+
+        result = DefWindowProc(message, w_param, l_param);
+        is_handled = FALSE;
+
+    } while (false);
 
     return result;
 }
@@ -326,7 +343,7 @@ bool IEBrowser::CreateBrowserWindow(HWND parent_window_handle)
         if (::IsWindow(parent_window_handle))
         {
             // 使用者传入了父窗口, 则创建子窗口
-            style = WS_CHILD | WS_CLIPSIBLINGS;
+            style = WS_POPUP | WS_CLIPSIBLINGS;
             ex_style = WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE;
         }
         else
@@ -339,13 +356,19 @@ bool IEBrowser::CreateBrowserWindow(HWND parent_window_handle)
 
         // 创建容器窗口
         if (Create(
-            parent_window_handle,
+            nullptr,
             CWindow::rcDefault,
             IEBROWSER_WINDOW_NAME,
             style,
             ex_style) == nullptr)
         {
             break;
+        }
+
+        if (::IsWindow(parent_window_handle))
+        {
+            SetWindowLong(GWL_STYLE, WS_CHILD | WS_CLIPSIBLINGS);
+            SetParent(parent_window_handle);
         }
 
         UpdateVisible();
