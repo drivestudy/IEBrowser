@@ -2,7 +2,7 @@
 
 ///
 // 用于一对多的进程间通信，（一个 server 进程和多个 client 进程通信）
-// 封装 Server 进程上的通信逻辑
+// 封装 server 进程上的通信接口
 ///
 class IPCServer
 {
@@ -13,17 +13,17 @@ public:
         ///
         // 与某个 client 建立了连接
         ///
-        void OnClientConnected(unsigned int client_id) {};
+        virtual void OnClientConnected(unsigned int client_id) {};
 
         ///
         // 某个 client 与 server 断开了连接
         ///
-        void OnClientDisConnected(unsigned int client_id) {};
+        virtual void OnClientDisConnected(unsigned int client_id) {};
 
         ///
         // 收到来自 client 的命令
         ///
-        void OnReceiveClientCommand(
+        virtual void OnReceiveClientCommand(
             unsigned int client_id,
             unsigned int command_id,
             void* data,
@@ -78,6 +78,9 @@ public:
         unsigned int command_id,
         void* data,
         size_t data_size);
+
+private:
+    // 以下是私有方法
 
 private:
     // 委托处理器

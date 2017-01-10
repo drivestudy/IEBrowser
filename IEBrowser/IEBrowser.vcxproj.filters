@@ -46,6 +46,9 @@
     <ClInclude Include="ipc_server.h">
       <Filter>ipc</Filter>
     </ClInclude>
+    <ClInclude Include="ipc_client.h">
+      <Filter>ipc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -73,6 +76,9 @@
       <Filter>utility</Filter>
     </ClCompile>
     <ClCompile Include="ipc_server.cpp">
+      <Filter>ipc</Filter>
+    </ClCompile>
+    <ClCompile Include="ipc_client.cpp">
       <Filter>ipc</Filter>
     </ClCompile>
   </ItemGroup>

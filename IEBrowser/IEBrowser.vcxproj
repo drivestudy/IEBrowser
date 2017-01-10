@@ -149,6 +149,7 @@
     <ClInclude Include="ie_browser_setting.h" />
     <ClInclude Include="ie_browser_thread.h" />
     <ClInclude Include="ie_browser_window_message.h" />
+    <ClInclude Include="ipc_client.h" />
     <ClInclude Include="ipc_server.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="win_utility.h" />
@@ -159,6 +160,7 @@
     <ClCompile Include="ie_browser.cpp" />
     <ClCompile Include="ie_browser_manager.cpp" />
     <ClCompile Include="ie_browser_thread.cpp" />
+    <ClCompile Include="ipc_client.cpp" />
     <ClCompile Include="ipc_server.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stdafx.cpp">

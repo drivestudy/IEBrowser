@@ -11,5 +11,8 @@
 
 namespace WinUtility
 {
+    ///
+    // 创建一个普通的 frame 窗口
+    ///
     HWND CreateFrameWindow(const wchar_t* window_name = L"FrameWindow");
 }
