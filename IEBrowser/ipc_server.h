@@ -1,8 +1,9 @@
 #pragma once
 
+#include "ipc_buffer.h"
+
 ///
 // 用于一对多的进程间通信，（一个 server 进程和多个 client 进程通信）
-// 封装 server 进程上的通信接口
 ///
 class IPCServer
 {
@@ -26,8 +27,7 @@ public:
         virtual void OnReceiveClientCommand(
             unsigned int client_id,
             unsigned int command_id,
-            void* data,
-            size_t data_size) {};
+            IPCBuffer& buffer) {};
     };
 
 private:
@@ -41,12 +41,12 @@ public:
     static IPCServer* GetInstance();
 
     ///
-    // 启动 server
+    // 启动 server, server_guid 在系统全局标识了这个 server
     ///
-    bool Start();
+    bool Start(const wchar_t* server_guid);
 
     ///
-    // 关闭 server
+    // 关闭 server, 必须在析构之前调用
     ///
     void Stop();
 
@@ -66,8 +66,7 @@ public:
     bool SendCommand(
         unsigned int client_id,
         unsigned int command_id,
-        void* data,
-        size_t data_size,
+        const IPCBuffer& data,
         unsigned int time_out);
 
     ///
@@ -76,13 +75,42 @@ public:
     bool PostCommand(
         unsigned int client_id,
         unsigned int command_id,
-        void* data,
-        size_t data_size);
+        const IPCBuffer& data);
 
 private:
     // 以下是私有方法
 
+    ///
+    // 创建发送线程
+    ///
+    bool CreateSendThread();
+
+    ///
+    // 发送线程的过程函数
+    ///
+    static void SendThreadProc();
+
+    ///
+    // 创建接收窗口
+    ///
+    bool CreateRecvWindow(const wchar_t* server_guid);
+
+    ///
+    // 接收窗口的过程函数
+    ///
+    static LRESULT CALLBACK RecvWindowProc(
+        HWND window_handle,
+        UINT message,
+        WPARAM w_param,
+        LPARAM l_param);
+
 private:
+    // 发送线程
+    std::unique_ptr<std::thread> send_thread_;
+
+    // 接收窗口
+    HWND recv_window_;
+
     // 委托处理器
     Delegate* delegate_;
 };

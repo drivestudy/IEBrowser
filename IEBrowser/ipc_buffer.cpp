@@ -9,7 +9,7 @@ IPCBuffer::~IPCBuffer()
 {
 }
 
-bool IPCBuffer::Encode(char *& buffer, size_t & buffer_size)
+bool IPCBuffer::Encode(char *& buffer, size_t & buffer_size) const
 {
     // ±‡¬ÎπÊ‘Ú
     // 

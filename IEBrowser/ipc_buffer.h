@@ -18,7 +18,7 @@ public:
     // 将存储的值序列化为一块内存
     // 使用者需要自行释放这块内存
     ///
-    bool Encode(char*& buffer, size_t& buffer_size);
+    bool Encode(char*& buffer, size_t& buffer_size) const;
 
     ///
     // 从一块内存中反序列化出 IPCBuffer
