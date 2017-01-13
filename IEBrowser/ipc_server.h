@@ -1,5 +1,6 @@
 #pragma once
 
+#include "blocking_queue.h"
 #include "ipc_buffer.h"
 
 ///
@@ -8,6 +9,9 @@
 class IPCServer
 {
 public:
+    ///
+    // 委托类
+    ///
     class Delegate
     {
     public:
@@ -27,7 +31,18 @@ public:
         virtual void OnReceiveClientCommand(
             unsigned int client_id,
             unsigned int command_id,
-            IPCBuffer& buffer) {};
+            std::shared_ptr<IPCBuffer> data) {};
+    };
+
+private:
+    ///
+    // 封装要发送的信息
+    ///
+    struct CommandInfo
+    {
+        unsigned int client_id;
+        unsigned int command_id;
+        std::shared_ptr<IPCBuffer> data;
     };
 
 private:
@@ -66,7 +81,7 @@ public:
     bool SendCommand(
         unsigned int client_id,
         unsigned int command_id,
-        const IPCBuffer& data,
+        std::shared_ptr<IPCBuffer> data,
         unsigned int time_out);
 
     ///
@@ -75,7 +90,7 @@ public:
     bool PostCommand(
         unsigned int client_id,
         unsigned int command_id,
-        const IPCBuffer& data);
+        std::shared_ptr<IPCBuffer> data);
 
 private:
     // 以下是私有方法
@@ -107,6 +122,9 @@ private:
 private:
     // 发送线程
     std::unique_ptr<std::thread> send_thread_;
+
+    // 发送队列，存储了待发送的消息
+    BlockingQueue<CommandInfo> send_queue_;
 
     // 接收窗口
     HWND recv_window_;

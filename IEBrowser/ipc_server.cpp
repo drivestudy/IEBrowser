@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ipc_server.h"
 
+#include "ipc_command_define.h"
 #include "win_utility.h"
 
 const wchar_t* kRecvWindowClass = L"IPCServerRecvWindowClass";
@@ -64,7 +65,8 @@ void IPCServer::Stop()
 
     if (send_thread_)
     {
-        // TODO : 向线程发送退出消息
+        // 向线程发送退出消息
+        PostCommand(0, CM_SEND_THREAD_QUIT, nullptr);
 
         send_thread_->join();
         send_thread_.reset(nullptr);
@@ -84,7 +86,7 @@ void IPCServer::RemoveDelegate()
 bool IPCServer::SendCommand(
     unsigned int client_id, 
     unsigned int command_id, 
-    const IPCBuffer& buffer, 
+    std::shared_ptr<IPCBuffer> buffer, 
     unsigned int time_out)
 {
     return false;
@@ -93,9 +95,16 @@ bool IPCServer::SendCommand(
 bool IPCServer::PostCommand(
     unsigned int client_id, 
     unsigned int command_id, 
-    const IPCBuffer& buffer)
+    std::shared_ptr<IPCBuffer> buffer)
 {
-    return false;
+    CommandInfo command_info;
+    command_info.client_id = client_id;
+    command_info.command_id = command_id;
+    command_info.data = buffer;
+
+    send_queue_.Push(command_info);
+
+    return true;
 }
 
 bool IPCServer::CreateSendThread()
@@ -106,8 +115,18 @@ bool IPCServer::CreateSendThread()
 
 void IPCServer::SendThreadProc()
 {
-    // TODO : 测试代码，用后删除
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    IPCServer* self = IPCServer::GetInstance();
+
+    while (true)
+    {
+        CommandInfo command_info = self->send_queue_.Take();
+        if (command_info.command_id == CM_SEND_THREAD_QUIT)
+        {
+            break;
+        }
+
+        // TODO : 进行发送操作
+    }
 }
 
 bool IPCServer::CreateRecvWindow(const wchar_t* server_guid)

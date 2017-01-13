@@ -142,6 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="blocking_queue.h" />
     <ClInclude Include="com_utility.h" />
     <ClInclude Include="id_generator.h" />
     <ClInclude Include="ie_browser.h" />
@@ -151,6 +152,7 @@
     <ClInclude Include="ie_browser_window_message.h" />
     <ClInclude Include="ipc_buffer.h" />
     <ClInclude Include="ipc_client.h" />
+    <ClInclude Include="ipc_command_define.h" />
     <ClInclude Include="ipc_server.h" />
     <ClInclude Include="ipc_value.h" />
     <ClInclude Include="stdafx.h" />
