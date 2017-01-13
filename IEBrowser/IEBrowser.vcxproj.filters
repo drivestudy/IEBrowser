@@ -49,6 +49,12 @@
     <ClInclude Include="ipc_client.h">
       <Filter>ipc</Filter>
     </ClInclude>
+    <ClInclude Include="ipc_buffer.h">
+      <Filter>ipc</Filter>
+    </ClInclude>
+    <ClInclude Include="ipc_value.h">
+      <Filter>ipc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -79,6 +85,12 @@
       <Filter>ipc</Filter>
     </ClCompile>
     <ClCompile Include="ipc_client.cpp">
+      <Filter>ipc</Filter>
+    </ClCompile>
+    <ClCompile Include="ipc_buffer.cpp">
+      <Filter>ipc</Filter>
+    </ClCompile>
+    <ClCompile Include="ipc_value.cpp">
       <Filter>ipc</Filter>
     </ClCompile>
   </ItemGroup>
