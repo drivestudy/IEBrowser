@@ -90,16 +90,40 @@ void IPCServer::RemoveDelegate()
 bool IPCServer::SendCommand(
     unsigned int client_id, 
     unsigned int command_id, 
-    std::shared_ptr<IPCBuffer> buffer, 
+    std::shared_ptr<IPCBuffer> data, 
     unsigned int time_out)
 {
-    return false;
+    bool result = false;
+
+    do
+    {
+        if (!DoPostCommand(client_id, command_id, data, CM_EX_PLEASE_REPLY))
+        {
+            break;
+        }
+
+        WaitForClientMessage(client_id, command_id, WM_IPC_CLIENT_ROGER_THAT, time_out);
+
+        result = true;
+
+    } while (false);
+
+    return result;
 }
 
 bool IPCServer::PostCommand(
     unsigned int client_id, 
     unsigned int command_id, 
-    std::shared_ptr<IPCBuffer> buffer)
+    std::shared_ptr<IPCBuffer> data)
+{
+    return DoPostCommand(client_id, command_id, data, 0);
+}
+
+bool IPCServer::DoPostCommand(
+    unsigned int client_id, 
+    unsigned int command_id, 
+    std::shared_ptr<IPCBuffer> data, 
+    unsigned int ex_command)
 {
     bool result = false;
 
@@ -121,13 +145,48 @@ bool IPCServer::PostCommand(
         command_info->client_id = client_id;
         command_info->command_id = command_id;
         command_info->client_message_window = client_message_window;
-        command_info->data = buffer;
+        command_info->data = data;
+        command_info->ex_command = ex_command;
 
         send_queue_.Push(command_info);
 
         result = true;
 
     } while (false);
+
+    return result;
+}
+
+bool IPCServer::WaitForClientMessage(
+    unsigned int client_id, 
+    unsigned int command_id, 
+    unsigned int message,
+    unsigned int time_out)
+{
+    bool result = false;
+
+    UINT_PTR timer_id = ::SetTimer(nullptr, 0, time_out, nullptr);
+
+    MSG msg;
+    while (::GetMessage(&msg, nullptr, 0, 0))
+    {
+        ::TranslateMessage(&msg);
+        ::DispatchMessage(&msg);
+
+        if (msg.message == message && 
+            msg.wParam == (WPARAM)client_id && 
+            msg.lParam == (LPARAM)command_id)
+        {
+            break;
+        }
+
+        if (msg.message == WM_TIMER)
+        {
+            break;
+        }
+    }
+
+    ::KillTimer(nullptr, timer_id);
 
     return result;
 }

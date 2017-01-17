@@ -40,10 +40,20 @@ private:
     ///
     struct CommandInfo
     {
+        // 对端 id
         unsigned int client_id;
+
+        // 命令 id
         unsigned int command_id;
+
+        // 对端消息窗口
         HWND client_message_window;
+
+        // 要发送的数据
         std::shared_ptr<IPCBuffer> data;
+
+        // 附加命令
+        unsigned int ex_command;
     };
 
 private:
@@ -95,6 +105,24 @@ public:
 
 private:
     // 以下是私有方法
+
+    ///
+    // 完成投递操作
+    ///
+    bool DoPostCommand(
+        unsigned int client_id,
+        unsigned int command_id,
+        std::shared_ptr<IPCBuffer> data,
+        unsigned int ex_command);
+
+    ///
+    // 等待对端发来某条消息
+    ///
+    bool WaitForClientMessage(
+        unsigned int client_id, 
+        unsigned int command_id, 
+        unsigned int message,
+        unsigned int time_out);
 
     ///
     // 创建发送线程
