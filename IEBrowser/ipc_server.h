@@ -42,6 +42,7 @@ private:
     {
         unsigned int client_id;
         unsigned int command_id;
+        HWND client_message_window;
         std::shared_ptr<IPCBuffer> data;
     };
 
@@ -106,6 +107,11 @@ private:
     static void SendThreadProc();
 
     ///
+    // 完成发送操作
+    ///
+    static bool DoSendCommand(std::shared_ptr<CommandInfo> command_info);
+
+    ///
     // 创建接收窗口
     ///
     bool CreateRecvWindow(const wchar_t* server_guid);
@@ -124,11 +130,14 @@ private:
     std::unique_ptr<std::thread> send_thread_;
 
     // 发送队列，存储了待发送的消息
-    BlockingQueue<CommandInfo> send_queue_;
+    BlockingQueue<std::shared_ptr<CommandInfo>> send_queue_;
 
     // 接收窗口
     HWND recv_window_;
 
     // 委托处理器
     Delegate* delegate_;
+
+    // 维护 client_id 和 消息窗口 关系的表，发送消息时，先通过 client_id 找到对端消息窗口，才能发送
+    std::map<unsigned int, HWND> client_message_window_map_;
 };

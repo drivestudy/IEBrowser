@@ -27,6 +27,8 @@ bool IPCBuffer::Encode(char *& buffer, size_t & buffer_size) const
     // 接着紧跟字符串，包括结尾的 \0
 
     bool result = false;
+    buffer = nullptr;
+    buffer_size = 0;
 
     do
     {
@@ -126,6 +128,11 @@ bool IPCBuffer::Encode(char *& buffer, size_t & buffer_size) const
         result = true;
 
     } while (false);
+
+    if (!result && buffer)
+    {
+        delete[] buffer;
+    }
 
     return result;
 }

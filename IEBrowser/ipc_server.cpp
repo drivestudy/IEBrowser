@@ -4,7 +4,11 @@
 #include "ipc_command_define.h"
 #include "win_utility.h"
 
+// 接收窗口的窗口类名
 const wchar_t* kRecvWindowClass = L"IPCServerRecvWindowClass";
+
+// 调用 SendMessageTimeout 时的超时
+const int kSendMsgTimeout = 5000;
 
 IPCServer::IPCServer() :
     recv_window_(nullptr),
@@ -97,14 +101,35 @@ bool IPCServer::PostCommand(
     unsigned int command_id, 
     std::shared_ptr<IPCBuffer> buffer)
 {
-    CommandInfo command_info;
-    command_info.client_id = client_id;
-    command_info.command_id = command_id;
-    command_info.data = buffer;
+    bool result = false;
 
-    send_queue_.Push(command_info);
+    do
+    {
+        auto iter = client_message_window_map_.find(client_id);
+        if (iter == client_message_window_map_.end())
+        {
+            break;
+        }
 
-    return true;
+        HWND client_message_window = iter->second;
+        if (!::IsWindow(client_message_window))
+        {
+            break;
+        }
+
+        std::shared_ptr<CommandInfo> command_info(new CommandInfo);
+        command_info->client_id = client_id;
+        command_info->command_id = command_id;
+        command_info->client_message_window = client_message_window;
+        command_info->data = buffer;
+
+        send_queue_.Push(command_info);
+
+        result = true;
+
+    } while (false);
+
+    return result;
 }
 
 bool IPCServer::CreateSendThread()
@@ -119,14 +144,67 @@ void IPCServer::SendThreadProc()
 
     while (true)
     {
-        CommandInfo command_info = self->send_queue_.Take();
-        if (command_info.command_id == CM_SEND_THREAD_QUIT)
+        std::shared_ptr<CommandInfo> command_info = self->send_queue_.Take();
+        if (command_info->command_id == CM_SEND_THREAD_QUIT)
         {
             break;
         }
 
-        // TODO : 进行发送操作
+        DoSendCommand(command_info);
     }
+}
+
+bool IPCServer::DoSendCommand(std::shared_ptr<CommandInfo> command_info)
+{
+    bool result = false;
+    char* data = nullptr;
+
+    do
+    {
+        HWND client_message_window = command_info->client_message_window;
+        if (!::IsWindow(client_message_window))
+        {
+            break;
+        }
+
+        if (command_info->data == nullptr)
+        {
+            break;
+        }
+
+        size_t data_size = 0;
+        if (!command_info->data->Encode(data, data_size))
+        {
+            break;
+        }
+
+        COPYDATASTRUCT copy_data;
+        copy_data.lpData = data;
+        copy_data.cbData = data_size;
+
+        if (::SendMessageTimeout(
+            client_message_window, 
+            WM_COPYDATA,
+            (WPARAM)nullptr,
+            (LPARAM)&copy_data,
+            SMTO_ABORTIFHUNG,
+            kSendMsgTimeout,
+            nullptr) == 0)
+        {
+            break;
+        }
+
+        result = true;
+
+    } while (false);
+
+    if (data)
+    {
+        delete[] data;
+        data = nullptr;
+    }
+
+    return result;
 }
 
 bool IPCServer::CreateRecvWindow(const wchar_t* server_guid)
