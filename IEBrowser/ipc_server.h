@@ -62,6 +62,14 @@ public:
     void SetDelegate(Delegate* delegate);
 
     ///
+    // 向指定 client 投递一条命令
+    ///
+    bool PostIPCMessage(
+        unsigned int client_id,
+        unsigned int message,
+        std::shared_ptr<IPCBuffer> data);
+
+    ///
     // 向指定 client 发送一条命令
     ///
     bool SendIPCMessage(
@@ -69,14 +77,6 @@ public:
         unsigned int message,
         std::shared_ptr<IPCBuffer> data,
         unsigned int time_out);
-
-    ///
-    // 向指定 client 投递一条命令
-    ///
-    bool PostIPCMessage(
-        unsigned int client_id,
-        unsigned int message,
-        std::shared_ptr<IPCBuffer> data);
 
 private:
     // 以下实现 IPC::Delegate 接口的方法

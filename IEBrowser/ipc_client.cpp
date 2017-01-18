@@ -1,8 +1,17 @@
 #include "stdafx.h"
 #include "ipc_client.h"
 
+#include "ipc.h"
+#include "ipc_buffer.h"
+#include "ipc_message_define.h"
+
+// 接收窗口的窗口类名和窗口名
+static const wchar_t* kRecvWindowClass = L"IPCClientRecvWindowClass";
+static const wchar_t* kRecvWindow = L"IPCClientRecvWindow";
+
 IPCClient::IPCClient() :
-    delegate_(nullptr)
+    delegate_(nullptr),
+    server_recv_window_(nullptr)
 {
 }
 
@@ -16,13 +25,39 @@ IPCClient * IPCClient::GetInstance()
     return &instance;
 }
 
-bool IPCClient::Connect()
+bool IPCClient::Connect(const wchar_t* server_guid)
 {
-    return false;
+    bool result = false;
+
+    do
+    {
+        IPC* ipc = IPC::GetInstance();
+        if (!ipc->Initialize(kRecvWindowClass, kRecvWindow))
+        {
+            break;
+        }
+
+        ipc->SetDelegate(this);
+
+        HWND server_recv_window = FindServerRecvWindow(server_guid);
+        if (server_recv_window == nullptr || !::IsWindow(server_recv_window))
+        {
+            break;
+        }
+        server_recv_window_ = server_recv_window;
+
+        PostIPCMessage(WM_IPC_CLIENT_CONNECT, nullptr);
+
+        result = true;
+
+    } while (false);
+
+    return result;
 }
 
 void IPCClient::DisConnect()
 {
+    PostIPCMessage(WM_IPC_CLIENT_DISCONNECT, nullptr);
 }
 
 void IPCClient::SetDelegate(Delegate * delegate)
@@ -30,21 +65,48 @@ void IPCClient::SetDelegate(Delegate * delegate)
     delegate_ = delegate;
 }
 
-void IPCClient::RemoveDelegate()
+bool IPCClient::PostIPCMessage(unsigned int message, std::shared_ptr<IPCBuffer> data)
 {
-    delegate_ = nullptr;
+    bool result = false;
+
+    do
+    {
+        if (!::IsWindow(server_recv_window_))
+        {
+            break;
+        }
+
+        IPC* ipc = IPC::GetInstance();
+        result = ipc->PostIPCMessage(server_recv_window_, message, data);
+
+    } while (false);
+
+    return result;
 }
 
-bool IPCClient::SendCommand(
-    unsigned int command_id, 
-    void * data, 
-    size_t data_size, 
+bool IPCClient::SendIPCMessage(
+    unsigned int message, 
+    std::shared_ptr<IPCBuffer> data,
     unsigned int time_out)
 {
-    return false;
+    bool result = false;
+
+    do
+    {
+        if (!::IsWindow(server_recv_window_))
+        {
+            break;
+        }
+
+        IPC* ipc = IPC::GetInstance();
+        result = ipc->SendIPCMessage(server_recv_window_, message, data, time_out);
+
+    } while (false);
+
+    return result;
 }
 
-bool IPCClient::PostCommand(unsigned int command_id, void * data, size_t data_size)
+HWND IPCClient::FindServerRecvWindow(const wchar_t * server_guid)
 {
-    return false;
+    return ::FindWindowEx(HWND_MESSAGE, nullptr, nullptr, server_guid);
 }

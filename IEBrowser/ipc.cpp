@@ -173,6 +173,11 @@ bool IPC::DoPostIPCMessage(
             break;
         }
 
+        if (data == nullptr)
+        {
+            data.reset(new IPCBuffer());
+        }
+
         // data 的前两个项用来存储具体的消息 id
         data->PushFront(IPCValue(message));
         data->PushFront(IPCValue(ex_message));

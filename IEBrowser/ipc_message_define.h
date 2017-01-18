@@ -11,4 +11,10 @@ enum IPCMessage
 
     // 指明此条消息已经收到
     WM_IPC_EX_ROGER_THAT,
+
+    // client 发送的连接请求
+    WM_IPC_CLIENT_CONNECT,
+
+    // client 发送的断开连接请求
+    WM_IPC_CLIENT_DISCONNECT,
 };
