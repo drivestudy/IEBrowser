@@ -28,12 +28,22 @@ public:
     ///
     // 将一个值添加到列表末尾
     ///
-    void Push(IPCValue value);
+    void PushBack(IPCValue value);
+
+    ///
+    // 将一个值添加到列表开头
+    ///
+    void PushFront(IPCValue value);
 
     ///
     // 从列表开头取出一个值
     ///
-    IPCValue Take();
+    IPCValue TakeFront();
+
+    ///
+    // 从列表末尾取出一个值
+    ///
+    IPCValue TakeBack();
 
 private:
     // 所有值的列表

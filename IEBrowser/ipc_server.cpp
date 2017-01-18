@@ -141,6 +141,10 @@ bool IPCServer::DoPostIPCMessage(
             break;
         }
 
+        // data 的前两个项用来存储具体的消息 id
+        data->PushFront(IPCValue(message));
+        data->PushFront(IPCValue(ex_message));
+
         std::shared_ptr<MessageInfo> message_info(new MessageInfo);
         message_info->client_id = client_id;
         message_info->message = message;

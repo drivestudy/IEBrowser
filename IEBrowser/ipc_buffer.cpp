@@ -248,12 +248,17 @@ bool IPCBuffer::Decode(char * buffer, size_t buffer_size)
     return result;
 }
 
-void IPCBuffer::Push(IPCValue value)
+void IPCBuffer::PushBack(IPCValue value)
 {
     values_.push_back(std::move(value));
 }
 
-IPCValue IPCBuffer::Take()
+void IPCBuffer::PushFront(IPCValue value)
+{
+    values_.push_front(std::move(value));
+}
+
+IPCValue IPCBuffer::TakeFront()
 {
     IPCValue value;
     
@@ -262,5 +267,18 @@ IPCValue IPCBuffer::Take()
         value = values_.front();
         values_.pop_front();
     }
+    return value;
+}
+
+IPCValue IPCBuffer::TakeBack()
+{
+    IPCValue value;
+
+    if (!values_.empty())
+    {
+        value = values_.back();
+        values_.pop_back();
+    }
+
     return value;
 }
