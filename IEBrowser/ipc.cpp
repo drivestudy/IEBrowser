@@ -155,13 +155,79 @@ bool IPC::CreateRecvWindow(const wchar_t * recv_window_class_name, const wchar_t
 
 LRESULT IPC::RecvWindowProc(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param)
 {
+    do
+    {
+        if (message != WM_COPYDATA)
+        {
+            break;
+        }
+
+        // 没有定义 delegate 的话，不需要处理这条消息了
+        IPC* self = IPC::GetInstance();
+        if (self->delegate_ == nullptr)
+        {
+            break;
+        }
+
+        // 从 copy data 中解码出发来的数据
+        PCOPYDATASTRUCT copy_data = (PCOPYDATASTRUCT)l_param;
+        if (copy_data == nullptr)
+        {
+            break;
+        }
+
+        char* buffer = (char*)copy_data->lpData;
+        size_t buffer_size = copy_data->cbData;
+        if (buffer == nullptr || buffer_size == 0)
+        {
+            break;
+        }
+
+        std::shared_ptr<IPCBuffer> data(new IPCBuffer);
+        if (!data->Decode(buffer, buffer_size))
+        {
+            break;
+        }
+
+        // data 的前两项是 message 和 internal_message
+        IPCValue message_value = data->TakeFront();
+        if (message_value.GetType() != IPCValue::VT_UINT)
+        {
+            break;
+        }
+        unsigned int recv_message = message_value.GetUInt();
+
+        IPCValue ex_message_value = data->TakeFront();
+        if (ex_message_value.GetType() != IPCValue::VT_UINT)
+        {
+            break;
+        }
+        unsigned int internal_message = ex_message_value.GetUInt();
+
+        // 触发给使用者
+        self->delegate_->OnRecvIPCMessage(recv_message, data);
+
+        // 如果发送方需要回复，则回复一条 ROGER_THAT 消息，表示已经处理了对端的消息
+        if (internal_message == WM_IPC_EX_PLEASE_REPLY)
+        {
+            HWND send_window = (HWND)w_param;
+            if (send_window == nullptr || !::IsWindow(send_window))
+            {
+                break;
+            }
+
+            ::PostMessage(send_window, recv_message, (WPARAM)self->recv_window_, WM_IPC_EX_ROGER_THAT);
+        }
+
+    } while (false);
+
     return ::DefWindowProc(window_handle, message, w_param, l_param);
 }
 
 bool IPC::DoPostIPCMessage(
     HWND recv_window, 
     unsigned int message, 
-    unsigned int ex_message, 
+    unsigned int internal_message, 
     std::shared_ptr<IPCBuffer> data)
 {
     bool result = false;
@@ -179,13 +245,13 @@ bool IPC::DoPostIPCMessage(
         }
 
         // data 的前两个项用来存储具体的消息 id
+        data->PushFront(IPCValue(internal_message));
         data->PushFront(IPCValue(message));
-        data->PushFront(IPCValue(ex_message));
 
         std::shared_ptr<MessageInfo> message_info(new MessageInfo);
         message_info->recv_window = recv_window;
         message_info->message = message;
-        message_info->ex_message = ex_message;
+        message_info->internal_message = internal_message;
         message_info->data = data;
 
         send_queue_.Push(message_info);
@@ -200,10 +266,12 @@ bool IPC::DoPostIPCMessage(
 bool IPC::DoSendIPCMessage(HWND recv_window, std::shared_ptr<IPCBuffer> message_data)
 {
     bool result = false;
-    char* data = nullptr;
+    char* buffer = nullptr;
 
     do
     {
+        IPC* self = IPC::GetInstance();
+
         if (!::IsWindow(recv_window))
         {
             break;
@@ -214,20 +282,20 @@ bool IPC::DoSendIPCMessage(HWND recv_window, std::shared_ptr<IPCBuffer> message_
             break;
         }
 
-        size_t data_size = 0;
-        if (!message_data->Encode(data, data_size))
+        size_t buffer_size = 0;
+        if (!message_data->Encode(buffer, buffer_size))
         {
             break;
         }
 
         COPYDATASTRUCT copy_data;
-        copy_data.lpData = data;
-        copy_data.cbData = data_size;
+        copy_data.lpData = buffer;
+        copy_data.cbData = buffer_size;
 
         if (::SendMessageTimeout(
             recv_window,
             WM_COPYDATA,
-            (WPARAM)nullptr,
+            (WPARAM)self->recv_window_,
             (LPARAM)&copy_data,
             SMTO_ABORTIFHUNG,
             kSendMessageTimeout,
@@ -240,10 +308,10 @@ bool IPC::DoSendIPCMessage(HWND recv_window, std::shared_ptr<IPCBuffer> message_
 
     } while (false);
 
-    if (data)
+    if (buffer)
     {
-        delete[] data;
-        data = nullptr;
+        delete[] buffer;
+        buffer = nullptr;
     }
 
     return result;
@@ -252,7 +320,7 @@ bool IPC::DoSendIPCMessage(HWND recv_window, std::shared_ptr<IPCBuffer> message_
 void IPC::WaitForNotifyMessage(
     HWND send_window, 
     unsigned int message, 
-    unsigned int ex_message, 
+    unsigned int internal_message, 
     unsigned int time_out)
 {
     UINT_PTR timer_id = ::SetTimer(nullptr, 0, time_out, nullptr);
@@ -265,7 +333,7 @@ void IPC::WaitForNotifyMessage(
 
         if (msg.message == message &&
             msg.wParam == (WPARAM)send_window &&
-            msg.lParam == (LPARAM)ex_message)
+            msg.lParam == (LPARAM)internal_message)
         {
             break;
         }

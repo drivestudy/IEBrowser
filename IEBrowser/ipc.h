@@ -34,8 +34,8 @@ private:
         // 消息
         unsigned int message;
 
-        // 附加消息
-        unsigned int ex_message;
+        // 附加消息，仅在 IPC 类内部使用
+        unsigned int internal_message;
 
         // 要发送的数据
         std::shared_ptr<IPCBuffer> data;
@@ -113,7 +113,7 @@ private:
     bool DoPostIPCMessage(
         HWND recv_window,
         unsigned int message,
-        unsigned int ex_message,
+        unsigned int internal_message,
         std::shared_ptr<IPCBuffer> data);
 
     ///
@@ -127,7 +127,7 @@ private:
     void WaitForNotifyMessage(
         HWND send_window, 
         unsigned int message, 
-        unsigned int ex_message, 
+        unsigned int internal_message, 
         unsigned int time_out);
 
 private:

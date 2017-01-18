@@ -25,6 +25,7 @@ private:
     IPCClient();
     ~IPCClient();
 
+public:
     ///
     // »ñÈ¡µ¥Àý
     ///
