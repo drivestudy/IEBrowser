@@ -26,11 +26,11 @@ public:
         virtual void OnClientDisConnected(unsigned int client_id) {};
 
         ///
-        // 收到来自 client 的命令
+        // 收到来自 client 的消息
         ///
-        virtual void OnReceiveClientCommand(
+        virtual void OnReceiveClientMessage(
             unsigned int client_id,
-            unsigned int command_id,
+            unsigned int message,
             std::shared_ptr<IPCBuffer> data) {};
     };
 
@@ -38,22 +38,22 @@ private:
     ///
     // 封装要发送的信息
     ///
-    struct CommandInfo
+    struct MessageInfo
     {
         // 对端 id
         unsigned int client_id;
 
-        // 命令 id
-        unsigned int command_id;
+        // 消息
+        unsigned int message;
 
         // 对端消息窗口
-        HWND client_message_window;
+        HWND client_window;
 
         // 要发送的数据
         std::shared_ptr<IPCBuffer> data;
 
-        // 附加命令
-        unsigned int ex_command;
+        // 附加消息
+        unsigned int ex_message;
     };
 
 private:
@@ -89,18 +89,18 @@ public:
     ///
     // 向指定 client 发送一条命令
     ///
-    bool SendCommand(
+    bool SendIPCMessage(
         unsigned int client_id,
-        unsigned int command_id,
+        unsigned int message,
         std::shared_ptr<IPCBuffer> data,
         unsigned int time_out);
 
     ///
     // 向指定 client 投递一条命令
     ///
-    bool PostCommand(
+    bool PostIPCMessage(
         unsigned int client_id,
-        unsigned int command_id,
+        unsigned int message,
         std::shared_ptr<IPCBuffer> data);
 
 private:
@@ -109,19 +109,19 @@ private:
     ///
     // 完成投递操作
     ///
-    bool DoPostCommand(
+    bool DoPostIPCMessage(
         unsigned int client_id,
-        unsigned int command_id,
+        unsigned int message,
         std::shared_ptr<IPCBuffer> data,
-        unsigned int ex_command);
+        unsigned int ex_message);
 
     ///
     // 等待对端发来某条消息
     ///
     bool WaitForClientMessage(
         unsigned int client_id, 
-        unsigned int command_id, 
-        unsigned int message,
+        unsigned int message, 
+        unsigned int ex_message,
         unsigned int time_out);
 
     ///
@@ -137,7 +137,7 @@ private:
     ///
     // 完成发送操作
     ///
-    static bool DoSendCommand(std::shared_ptr<CommandInfo> command_info);
+    static bool DoSendIPCMessage(std::shared_ptr<MessageInfo> message_info);
 
     ///
     // 创建接收窗口
@@ -158,7 +158,7 @@ private:
     std::unique_ptr<std::thread> send_thread_;
 
     // 发送队列，存储了待发送的消息
-    BlockingQueue<std::shared_ptr<CommandInfo>> send_queue_;
+    BlockingQueue<std::shared_ptr<MessageInfo>> send_queue_;
 
     // 接收窗口
     HWND recv_window_;
@@ -167,5 +167,5 @@ private:
     Delegate* delegate_;
 
     // 维护 client_id 和 消息窗口 关系的表，发送消息时，先通过 client_id 找到对端消息窗口，才能发送
-    std::map<unsigned int, HWND> client_message_window_map_;
+    std::map<unsigned int, HWND> client_window_map_;
 };

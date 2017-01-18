@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ipc_server.h"
 
-#include "ipc_command_define.h"
+#include "ipc_message_define.h"
 #include "win_utility.h"
 
 // 接收窗口的窗口类名
@@ -70,7 +70,7 @@ void IPCServer::Stop()
     if (send_thread_)
     {
         // 向线程发送退出消息
-        PostCommand(0, CM_SEND_THREAD_QUIT, nullptr);
+        PostIPCMessage(0, WM_IPC_SEND_THREAD_QUIT, nullptr);
 
         send_thread_->join();
         send_thread_.reset(nullptr);
@@ -87,9 +87,9 @@ void IPCServer::RemoveDelegate()
     delegate_ = nullptr;
 }
 
-bool IPCServer::SendCommand(
+bool IPCServer::SendIPCMessage(
     unsigned int client_id, 
-    unsigned int command_id, 
+    unsigned int message, 
     std::shared_ptr<IPCBuffer> data, 
     unsigned int time_out)
 {
@@ -97,12 +97,12 @@ bool IPCServer::SendCommand(
 
     do
     {
-        if (!DoPostCommand(client_id, command_id, data, CM_EX_PLEASE_REPLY))
+        if (!DoPostIPCMessage(client_id, message, data, WM_IPC_EX_PLEASE_REPLY))
         {
             break;
         }
 
-        WaitForClientMessage(client_id, command_id, WM_IPC_CLIENT_ROGER_THAT, time_out);
+        WaitForClientMessage(client_id, message, WM_IPC_EX_ROGER_THAT, time_out);
 
         result = true;
 
@@ -111,44 +111,44 @@ bool IPCServer::SendCommand(
     return result;
 }
 
-bool IPCServer::PostCommand(
+bool IPCServer::PostIPCMessage(
     unsigned int client_id, 
-    unsigned int command_id, 
+    unsigned int message, 
     std::shared_ptr<IPCBuffer> data)
 {
-    return DoPostCommand(client_id, command_id, data, 0);
+    return DoPostIPCMessage(client_id, message, data, 0);
 }
 
-bool IPCServer::DoPostCommand(
+bool IPCServer::DoPostIPCMessage(
     unsigned int client_id, 
-    unsigned int command_id, 
+    unsigned int message, 
     std::shared_ptr<IPCBuffer> data, 
-    unsigned int ex_command)
+    unsigned int ex_message)
 {
     bool result = false;
 
     do
     {
-        auto iter = client_message_window_map_.find(client_id);
-        if (iter == client_message_window_map_.end())
+        auto iter = client_window_map_.find(client_id);
+        if (iter == client_window_map_.end())
         {
             break;
         }
 
-        HWND client_message_window = iter->second;
-        if (!::IsWindow(client_message_window))
+        HWND client_window = iter->second;
+        if (!::IsWindow(client_window))
         {
             break;
         }
 
-        std::shared_ptr<CommandInfo> command_info(new CommandInfo);
-        command_info->client_id = client_id;
-        command_info->command_id = command_id;
-        command_info->client_message_window = client_message_window;
-        command_info->data = data;
-        command_info->ex_command = ex_command;
+        std::shared_ptr<MessageInfo> message_info(new MessageInfo);
+        message_info->client_id = client_id;
+        message_info->message = message;
+        message_info->client_window = client_window;
+        message_info->data = data;
+        message_info->ex_message = ex_message;
 
-        send_queue_.Push(command_info);
+        send_queue_.Push(message_info);
 
         result = true;
 
@@ -159,8 +159,8 @@ bool IPCServer::DoPostCommand(
 
 bool IPCServer::WaitForClientMessage(
     unsigned int client_id, 
-    unsigned int command_id, 
-    unsigned int message,
+    unsigned int message, 
+    unsigned int ex_message,
     unsigned int time_out)
 {
     bool result = false;
@@ -175,7 +175,7 @@ bool IPCServer::WaitForClientMessage(
 
         if (msg.message == message && 
             msg.wParam == (WPARAM)client_id && 
-            msg.lParam == (LPARAM)command_id)
+            msg.lParam == (LPARAM)ex_message)
         {
             break;
         }
@@ -203,36 +203,36 @@ void IPCServer::SendThreadProc()
 
     while (true)
     {
-        std::shared_ptr<CommandInfo> command_info = self->send_queue_.Take();
-        if (command_info->command_id == CM_SEND_THREAD_QUIT)
+        std::shared_ptr<MessageInfo> message_info = self->send_queue_.Take();
+        if (message_info->message == WM_IPC_SEND_THREAD_QUIT)
         {
             break;
         }
 
-        DoSendCommand(command_info);
+        DoSendIPCMessage(message_info);
     }
 }
 
-bool IPCServer::DoSendCommand(std::shared_ptr<CommandInfo> command_info)
+bool IPCServer::DoSendIPCMessage(std::shared_ptr<MessageInfo> message_info)
 {
     bool result = false;
     char* data = nullptr;
 
     do
     {
-        HWND client_message_window = command_info->client_message_window;
-        if (!::IsWindow(client_message_window))
+        HWND client_window = message_info->client_window;
+        if (!::IsWindow(client_window))
         {
             break;
         }
 
-        if (command_info->data == nullptr)
+        if (message_info->data == nullptr)
         {
             break;
         }
 
         size_t data_size = 0;
-        if (!command_info->data->Encode(data, data_size))
+        if (!message_info->data->Encode(data, data_size))
         {
             break;
         }
@@ -242,7 +242,7 @@ bool IPCServer::DoSendCommand(std::shared_ptr<CommandInfo> command_info)
         copy_data.cbData = data_size;
 
         if (::SendMessageTimeout(
-            client_message_window, 
+            client_window, 
             WM_COPYDATA,
             (WPARAM)nullptr,
             (LPARAM)&copy_data,

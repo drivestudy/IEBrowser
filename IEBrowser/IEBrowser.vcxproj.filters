@@ -58,7 +58,7 @@
     <ClInclude Include="blocking_queue.h">
       <Filter>base</Filter>
     </ClInclude>
-    <ClInclude Include="ipc_command_define.h">
+    <ClInclude Include="ipc_message_define.h">
       <Filter>ipc</Filter>
     </ClInclude>
   </ItemGroup>
