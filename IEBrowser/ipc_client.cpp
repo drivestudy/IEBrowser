@@ -58,6 +58,11 @@ bool IPCClient::Connect(const wchar_t* server_guid)
 void IPCClient::DisConnect()
 {
     PostIPCMessage(WM_IPC_CLIENT_DISCONNECT, nullptr);
+
+    server_recv_window_ = nullptr;
+
+    IPC* ipc = IPC::GetInstance();
+    ipc->UnInitialize();
 }
 
 void IPCClient::SetDelegate(Delegate * delegate)
