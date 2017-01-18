@@ -64,6 +64,9 @@
     <ClInclude Include="ipc.h">
       <Filter>ipc</Filter>
     </ClInclude>
+    <ClInclude Include="log.h">
+      <Filter>base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

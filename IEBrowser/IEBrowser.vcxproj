@@ -159,6 +159,7 @@
     <ClInclude Include="ipc_message_define.h" />
     <ClInclude Include="ipc_server.h" />
     <ClInclude Include="ipc_value.h" />
+    <ClInclude Include="log.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="win_utility.h" />
   </ItemGroup>
