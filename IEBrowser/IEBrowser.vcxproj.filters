@@ -61,6 +61,9 @@
     <ClInclude Include="ipc_message_define.h">
       <Filter>ipc</Filter>
     </ClInclude>
+    <ClInclude Include="ipc.h">
+      <Filter>ipc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -97,6 +100,9 @@
       <Filter>ipc</Filter>
     </ClCompile>
     <ClCompile Include="ipc_value.cpp">
+      <Filter>ipc</Filter>
+    </ClCompile>
+    <ClCompile Include="ipc.cpp">
       <Filter>ipc</Filter>
     </ClCompile>
   </ItemGroup>

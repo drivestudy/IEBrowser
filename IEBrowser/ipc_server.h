@@ -1,12 +1,14 @@
 #pragma once
 
-#include "blocking_queue.h"
-#include "ipc_buffer.h"
+#include "ipc.h"
+
+class IPCBuffer;
 
 ///
 // 用于一对多的进程间通信，（一个 server 进程和多个 client 进程通信）
 ///
-class IPCServer
+class IPCServer :
+    public IPC::Delegate
 {
 public:
     ///
@@ -26,34 +28,12 @@ public:
         virtual void OnClientDisConnected(unsigned int client_id) {};
 
         ///
-        // 收到来自 client 的消息
+        // 收到消息
         ///
-        virtual void OnReceiveClientMessage(
+        virtual void OnRecvIPCMessage(
             unsigned int client_id,
             unsigned int message,
             std::shared_ptr<IPCBuffer> data) {};
-    };
-
-private:
-    ///
-    // 封装要发送的信息
-    ///
-    struct MessageInfo
-    {
-        // 对端 id
-        unsigned int client_id;
-
-        // 消息
-        unsigned int message;
-
-        // 对端消息窗口
-        HWND client_window;
-
-        // 要发送的数据
-        std::shared_ptr<IPCBuffer> data;
-
-        // 附加消息
-        unsigned int ex_message;
     };
 
 private:
@@ -82,11 +62,6 @@ public:
     void SetDelegate(Delegate* delegate);
 
     ///
-    // 移除委托
-    ///
-    void RemoveDelegate();
-
-    ///
     // 向指定 client 发送一条命令
     ///
     bool SendIPCMessage(
@@ -104,65 +79,14 @@ public:
         std::shared_ptr<IPCBuffer> data);
 
 private:
-    // 以下是私有方法
+    // 以下实现 IPC::Delegate 接口的方法
 
     ///
-    // 完成投递操作
+    // 收到了对端发来的 IPC 消息
     ///
-    bool DoPostIPCMessage(
-        unsigned int client_id,
-        unsigned int message,
-        std::shared_ptr<IPCBuffer> data,
-        unsigned int ex_message);
-
-    ///
-    // 等待对端发来某条消息
-    ///
-    bool WaitForClientMessage(
-        unsigned int client_id, 
-        unsigned int message, 
-        unsigned int ex_message,
-        unsigned int time_out);
-
-    ///
-    // 创建发送线程
-    ///
-    bool CreateSendThread();
-
-    ///
-    // 发送线程的过程函数
-    ///
-    static void SendThreadProc();
-
-    ///
-    // 完成发送操作
-    ///
-    static bool DoSendIPCMessage(std::shared_ptr<MessageInfo> message_info);
-
-    ///
-    // 创建接收窗口
-    ///
-    bool CreateRecvWindow(const wchar_t* server_guid);
-
-    ///
-    // 接收窗口的过程函数
-    ///
-    static LRESULT CALLBACK RecvWindowProc(
-        HWND window_handle,
-        UINT message,
-        WPARAM w_param,
-        LPARAM l_param);
+    void OnRecvIPCMessage(unsigned int message, std::shared_ptr<IPCBuffer> data);
 
 private:
-    // 发送线程
-    std::unique_ptr<std::thread> send_thread_;
-
-    // 发送队列，存储了待发送的消息
-    BlockingQueue<std::shared_ptr<MessageInfo>> send_queue_;
-
-    // 接收窗口
-    HWND recv_window_;
-
     // 委托处理器
     Delegate* delegate_;
 
