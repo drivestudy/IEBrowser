@@ -25,6 +25,8 @@ IPC * IPC::GetInstance()
 
 bool IPC::Initialize(const wchar_t * recv_window_class_name, const wchar_t * recv_window_name)
 {
+    LOG_ENTER_EX(L"recv_window_class_name = %s, recv_window_name = %s", recv_window_class_name, recv_window_name);
+
     bool result = false;
 
     do
@@ -32,12 +34,14 @@ bool IPC::Initialize(const wchar_t * recv_window_class_name, const wchar_t * rec
         // 创建接收窗口
         if (!CreateRecvWindow(recv_window_class_name, recv_window_name))
         {
+            LOG_ERROR(L"CreateRecvWindow failed!");
             break;
         }
 
         // 创建发送线程
         if (!CreateSendThread())
         {
+            LOG_ERROR(L"CreateSendThread failed!");
             break;
         }
 
@@ -50,11 +54,15 @@ bool IPC::Initialize(const wchar_t * recv_window_class_name, const wchar_t * rec
         UnInitialize();
     }
 
+    LOG_EXIT_EX(L"result = %d", result);
+
     return result;
 }
 
 void IPC::UnInitialize()
 {
+    LOG_ENTER();
+
     if (recv_window_)
     {
         ::DestroyWindow(recv_window_);
@@ -72,6 +80,8 @@ void IPC::UnInitialize()
         send_thread_->join();
         send_thread_.reset(nullptr);
     }
+
+    LOG_EXIT();
 }
 
 void IPC::SetDelegate(Delegate * delegate)
@@ -81,7 +91,13 @@ void IPC::SetDelegate(Delegate * delegate)
 
 bool IPC::PostIPCMessage(HWND recv_window, unsigned int message, std::shared_ptr<IPCBuffer> data)
 {
-    return DoPostIPCMessage(recv_window, message, 0, data);
+    LOG_ENTER_EX(L"recv_window = 0x%08x, message = %d", recv_window, message);
+
+    bool result = DoPostIPCMessage(recv_window, message, 0, data);
+
+    LOG_EXIT_EX(L"result = %d", result);
+
+    return result;
 }
 
 bool IPC::SendIPCMessage(
@@ -90,12 +106,15 @@ bool IPC::SendIPCMessage(
     std::shared_ptr<IPCBuffer> data,
     unsigned int time_out)
 {
+    LOG_ENTER_EX(L"recv_window = 0x%08x, message = %d, time_out = %d", recv_window, message);
+
     bool result = false;
 
     do
     {
         if (!DoPostIPCMessage(recv_window, message, WM_IPC_EX_PLEASE_REPLY, data))
         {
+            LOG_ERROR(L"DoPostIPCMessage failed!");
             break;
         }
 
@@ -105,17 +124,26 @@ bool IPC::SendIPCMessage(
 
     } while (false);
 
+    LOG_EXIT_EX(L"result = %d", result);
+
     return result;
 }
 
 bool IPC::CreateSendThread()
 {
+    LOG_ENTER();
+
     send_thread_.reset(new std::thread(IPC::SendThreadProc));
+
+    LOG_EXIT();
+
     return true;
 }
 
 void IPC::SendThreadProc()
 {
+    LOG_ENTER();
+
     IPC* self = IPC::GetInstance();
 
     while (true)
@@ -123,15 +151,20 @@ void IPC::SendThreadProc()
         std::shared_ptr<MessageInfo> message_info = self->send_queue_.Take();
         if (message_info->message == WM_IPC_SEND_THREAD_QUIT)
         {
+            LOG_CRITICAL(L"recv quit message, break");
             break;
         }
 
         DoSendIPCMessage(message_info->recv_window, message_info->data);
     }
+
+    LOG_EXIT();
 }
 
 bool IPC::CreateRecvWindow(const wchar_t * recv_window_class_name, const wchar_t * recv_window_name)
 {
+    LOG_ENTER_EX(L"recv_window_class_name = %s, recv_window_name = %s", recv_window_class_name, recv_window_name);
+
     bool result = false;
 
     do
@@ -143,12 +176,15 @@ bool IPC::CreateRecvWindow(const wchar_t * recv_window_class_name, const wchar_t
 
         if (recv_window_ == nullptr)
         {
+            LOG_ERROR(L"CreateMessageWindow failed!");
             break;
         }
 
         result = true;
 
     } while (false);
+
+    LOG_EXIT_EX(L"result = %d", result);
 
     return result;
 }
@@ -162,10 +198,13 @@ LRESULT IPC::RecvWindowProc(HWND window_handle, UINT message, WPARAM w_param, LP
             break;
         }
 
+        LOG_INFO(L"receive WM_COPYDATA");
+
         // 没有定义 delegate 的话，不需要处理这条消息了
         IPC* self = IPC::GetInstance();
         if (self->delegate_ == nullptr)
         {
+            LOG_ERROR(L"no delegate");
             break;
         }
 
@@ -173,6 +212,7 @@ LRESULT IPC::RecvWindowProc(HWND window_handle, UINT message, WPARAM w_param, LP
         PCOPYDATASTRUCT copy_data = (PCOPYDATASTRUCT)l_param;
         if (copy_data == nullptr)
         {
+            LOG_ERROR(L"copy_data == nullptr");
             break;
         }
 
@@ -180,12 +220,14 @@ LRESULT IPC::RecvWindowProc(HWND window_handle, UINT message, WPARAM w_param, LP
         size_t buffer_size = copy_data->cbData;
         if (buffer == nullptr || buffer_size == 0)
         {
+            LOG_ERROR(L"buffer not valid, buffer = 0x%08x, buffer_size = %d", buffer, buffer_size);
             break;
         }
 
         std::shared_ptr<IPCBuffer> data(new IPCBuffer);
         if (!data->Decode(buffer, buffer_size))
         {
+            LOG_ERROR(L"Decode failed!");
             break;
         }
 
@@ -193,16 +235,20 @@ LRESULT IPC::RecvWindowProc(HWND window_handle, UINT message, WPARAM w_param, LP
         IPCValue message_value = data->TakeFront();
         if (message_value.GetType() != IPCValue::VT_UINT)
         {
+            LOG_ERROR(L"take message failed!");
             break;
         }
         unsigned int recv_message = message_value.GetUInt();
 
-        IPCValue ex_message_value = data->TakeFront();
-        if (ex_message_value.GetType() != IPCValue::VT_UINT)
+        IPCValue internal_message_value = data->TakeFront();
+        if (internal_message_value.GetType() != IPCValue::VT_UINT)
         {
+            LOG_ERROR(L"take internal_message failed!");
             break;
         }
-        unsigned int internal_message = ex_message_value.GetUInt();
+        unsigned int internal_message = internal_message_value.GetUInt();
+
+        LOG_INFO(L"recv message, message = %d, internal_message = %d", recv_message, internal_message);
 
         // 触发给使用者
         self->delegate_->OnRecvIPCMessage(recv_message, data);
@@ -213,6 +259,7 @@ LRESULT IPC::RecvWindowProc(HWND window_handle, UINT message, WPARAM w_param, LP
             HWND send_window = (HWND)w_param;
             if (send_window == nullptr || !::IsWindow(send_window))
             {
+                LOG_ERROR(L"please reply but send_window is not valid");
                 break;
             }
 
@@ -230,12 +277,15 @@ bool IPC::DoPostIPCMessage(
     unsigned int internal_message, 
     std::shared_ptr<IPCBuffer> data)
 {
+    LOG_ENTER_EX(L"recv_window = 0x%08x, message = %d, internal_message = %d", recv_window, message, internal_message);
+
     bool result = false;
 
     do
     {
         if (!::IsWindow(recv_window))
         {
+            LOG_ERROR(L"recv_window is not window");
             break;
         }
 
@@ -260,11 +310,15 @@ bool IPC::DoPostIPCMessage(
 
     } while (false);
 
+    LOG_EXIT_EX(L"result = %d", result);
+
     return result;
 }
 
 bool IPC::DoSendIPCMessage(HWND recv_window, std::shared_ptr<IPCBuffer> message_data)
 {
+    LOG_ENTER_EX(L"recv_window = 0x%08x", recv_window);
+
     bool result = false;
     char* buffer = nullptr;
 
@@ -274,17 +328,20 @@ bool IPC::DoSendIPCMessage(HWND recv_window, std::shared_ptr<IPCBuffer> message_
 
         if (!::IsWindow(recv_window))
         {
+            LOG_ERROR(L"recv_window is not window");
             break;
         }
 
         if (message_data == nullptr)
         {
+            LOG_ERROR(L"message_data == nullptr");
             break;
         }
 
         size_t buffer_size = 0;
         if (!message_data->Encode(buffer, buffer_size))
         {
+            LOG_ERROR(L"Encode failed");
             break;
         }
 
@@ -301,6 +358,7 @@ bool IPC::DoSendIPCMessage(HWND recv_window, std::shared_ptr<IPCBuffer> message_
             kSendMessageTimeout,
             nullptr) == 0)
         {
+            LOG_ERROR(L"SendMessageTimeout failed");
             break;
         }
 
@@ -314,6 +372,8 @@ bool IPC::DoSendIPCMessage(HWND recv_window, std::shared_ptr<IPCBuffer> message_
         buffer = nullptr;
     }
 
+    LOG_EXIT_EX(L"result = %d", result);
+
     return result;
 }
 
@@ -323,6 +383,8 @@ void IPC::WaitForNotifyMessage(
     unsigned int internal_message, 
     unsigned int time_out)
 {
+    LOG_ENTER_EX(L"send_window = 0x%08x", send_window);
+
     UINT_PTR timer_id = ::SetTimer(nullptr, 0, time_out, nullptr);
 
     MSG msg;
@@ -335,14 +397,18 @@ void IPC::WaitForNotifyMessage(
             msg.wParam == (WPARAM)send_window &&
             msg.lParam == (LPARAM)internal_message)
         {
+            LOG_INFO(L"recv message, break");
             break;
         }
 
         if (msg.message == WM_TIMER)
         {
+            LOG_ERROR(L"timeout, break");
             break;
         }
     }
 
     ::KillTimer(nullptr, timer_id);
+
+    LOG_EXIT();
 }

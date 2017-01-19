@@ -30,3 +30,5 @@
 #include <atlctl.h>
 
 extern CComModule _Module;
+
+#include "log.h"

@@ -27,6 +27,8 @@ IPCClient * IPCClient::GetInstance()
 
 bool IPCClient::Connect(const wchar_t* server_guid)
 {
+    LOG_ENTER_EX(L"server_guid = %s", server_guid);
+
     bool result = false;
 
     do
@@ -34,6 +36,7 @@ bool IPCClient::Connect(const wchar_t* server_guid)
         IPC* ipc = IPC::GetInstance();
         if (!ipc->Initialize(kRecvWindowClass, kRecvWindow))
         {
+            LOG_ERROR(L"IPC::Initialize failed!");
             break;
         }
 
@@ -42,6 +45,7 @@ bool IPCClient::Connect(const wchar_t* server_guid)
         HWND server_recv_window = FindServerRecvWindow(server_guid);
         if (server_recv_window == nullptr || !::IsWindow(server_recv_window))
         {
+            LOG_ERROR(L"FindServerRecvWindow failed");
             break;
         }
         server_recv_window_ = server_recv_window;
@@ -52,17 +56,23 @@ bool IPCClient::Connect(const wchar_t* server_guid)
 
     } while (false);
 
+    LOG_EXIT_EX(L"result = %d", result);
+
     return result;
 }
 
 void IPCClient::DisConnect()
 {
+    LOG_ENTER();
+
     PostIPCMessage(WM_IPC_CLIENT_DISCONNECT, nullptr);
 
     server_recv_window_ = nullptr;
 
     IPC* ipc = IPC::GetInstance();
     ipc->UnInitialize();
+
+    LOG_EXIT();
 }
 
 void IPCClient::SetDelegate(Delegate * delegate)
@@ -72,12 +82,15 @@ void IPCClient::SetDelegate(Delegate * delegate)
 
 bool IPCClient::PostIPCMessage(unsigned int message, std::shared_ptr<IPCBuffer> data)
 {
+    LOG_ENTER_EX(L"message = %d", message);
+
     bool result = false;
 
     do
     {
         if (!::IsWindow(server_recv_window_))
         {
+            LOG_ERROR(L"server_recv_window_ is not valid, server_recv_window = 0x%08x", server_recv_window_);
             break;
         }
 
@@ -85,6 +98,8 @@ bool IPCClient::PostIPCMessage(unsigned int message, std::shared_ptr<IPCBuffer> 
         result = ipc->PostIPCMessage(server_recv_window_, message, data);
 
     } while (false);
+
+    LOG_EXIT_EX(L"result = %d", result);
 
     return result;
 }
@@ -94,12 +109,15 @@ bool IPCClient::SendIPCMessage(
     std::shared_ptr<IPCBuffer> data,
     unsigned int time_out)
 {
+    LOG_ENTER_EX(L"message = %d, time_out = %d", message, time_out);
+
     bool result = false;
 
     do
     {
         if (!::IsWindow(server_recv_window_))
         {
+            LOG_ERROR(L"server_recv_window_ is not window");
             break;
         }
 
@@ -108,10 +126,16 @@ bool IPCClient::SendIPCMessage(
 
     } while (false);
 
+    LOG_EXIT_EX(L"result = %d", result);
+
     return result;
 }
 
 HWND IPCClient::FindServerRecvWindow(const wchar_t * server_guid)
 {
-    return ::FindWindowEx(HWND_MESSAGE, nullptr, nullptr, server_guid);
+    HWND server_window = ::FindWindowEx(HWND_MESSAGE, nullptr, nullptr, server_guid);
+
+    LOG_INFO(L"server_window = 0x%08x", server_window);
+
+    return server_window;
 }

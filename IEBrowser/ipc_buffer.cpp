@@ -34,6 +34,7 @@ bool IPCBuffer::Encode(char *& buffer, size_t & buffer_size) const
     {
         if (values_.empty())
         {
+            LOG_ERROR(L"values_ is empty");
             break;
         }
 
@@ -145,6 +146,7 @@ bool IPCBuffer::Decode(char * buffer, size_t buffer_size)
     {
         if (buffer == nullptr || buffer_size == 0)
         {
+            LOG_ERROR(L"buffer is not valid, buffer = 0x%08x, buffer_size = %d", buffer, buffer_size);
             break;
         }
 
@@ -229,6 +231,7 @@ bool IPCBuffer::Decode(char * buffer, size_t buffer_size)
                 break;
             }
             default:
+                LOG_ERROR(L"unknown type, type = %d", type);
                 no_error = false;
                 break;
             }
@@ -236,6 +239,7 @@ bool IPCBuffer::Decode(char * buffer, size_t buffer_size)
 
         if (!no_error || pos > buffer_size)
         {
+            LOG_ERROR(L"error occur, no_error = %d, pos = %d, buffer_size = %d", no_error, pos, buffer_size);
             break;
         }
 
