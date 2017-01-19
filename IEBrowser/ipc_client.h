@@ -47,6 +47,11 @@ public:
     void SetDelegate(Delegate* delegate);
 
     ///
+    // 获取 client_id
+    ///
+    unsigned int GetClientID();
+
+    ///
     // 向 server 投递一条命令
     ///
     bool PostIPCMessage(unsigned int message, std::shared_ptr<IPCBuffer> data);

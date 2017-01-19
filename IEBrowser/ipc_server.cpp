@@ -31,6 +31,7 @@ bool IPCServer::Start(const wchar_t* server_guid)
 
     do
     {
+        // ³õÊ¼»¯ ipc
         IPC* ipc = IPC::GetInstance();
         if (!ipc->Initialize(kRecvWindowClass, server_guid))
         {
@@ -155,7 +156,24 @@ void IPCServer::OnRecvIPCMessage(unsigned int message, std::shared_ptr<IPCBuffer
         }
         unsigned int client_id = client_id_value.GetUInt();
 
-        delegate_->OnRecvIPCMessage(client_id, message, data);
+        switch (message)
+        {
+        case WM_IPC_CLIENT_CONNECT:
+        {
+            delegate_->OnClientConnected(client_id);
+            break;
+        }
+        case WM_IPC_CLIENT_DISCONNECT:
+        {
+            delegate_->OnClientDisConnected(client_id);
+            break;
+        }
+        default:
+        {
+            delegate_->OnRecvIPCMessage(client_id, message, data);
+            break;
+        }
+        }
 
     } while (false);
 

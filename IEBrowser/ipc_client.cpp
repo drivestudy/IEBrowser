@@ -33,6 +33,7 @@ bool IPCClient::Connect(const wchar_t* server_guid)
 
     do
     {
+        // 初始化 ipc
         IPC* ipc = IPC::GetInstance();
         if (!ipc->Initialize(kRecvWindowClass, kRecvWindow))
         {
@@ -42,6 +43,7 @@ bool IPCClient::Connect(const wchar_t* server_guid)
 
         ipc->SetDelegate(this);
 
+        // 获取 server 的接收窗口句柄
         HWND server_recv_window = FindServerRecvWindow(server_guid);
         if (server_recv_window == nullptr || !::IsWindow(server_recv_window))
         {
@@ -50,7 +52,10 @@ bool IPCClient::Connect(const wchar_t* server_guid)
         }
         server_recv_window_ = server_recv_window;
 
-        PostIPCMessage(WM_IPC_CLIENT_CONNECT, nullptr);
+        // 连接到 server
+        std::shared_ptr<IPCBuffer> data(new IPCBuffer);
+        data->PushBack(IPCValue(GetClientID()));
+        PostIPCMessage(WM_IPC_CLIENT_CONNECT, data);
 
         result = true;
 
@@ -78,6 +83,11 @@ void IPCClient::DisConnect()
 void IPCClient::SetDelegate(Delegate * delegate)
 {
     delegate_ = delegate;
+}
+
+unsigned int IPCClient::GetClientID()
+{
+    return ::GetCurrentProcessId();
 }
 
 bool IPCClient::PostIPCMessage(unsigned int message, std::shared_ptr<IPCBuffer> data)

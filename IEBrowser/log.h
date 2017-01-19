@@ -12,7 +12,7 @@
 
 #define LOG_LEVEL_INFO L"[log][info]"
 #define LOG_LEVEL_WARNING L"[log][warning]"
-#define LOG_LEVEL_ERROR L"[log][warning]"
+#define LOG_LEVEL_ERROR L"[log][error]"
 #define LOG_LEVEL_CRITICAL L"[log][critical]"
 #define LOG_LEVEL_VERBOSE L"[log][verbose]"
 
