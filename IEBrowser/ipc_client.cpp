@@ -54,7 +54,7 @@ bool IPCClient::Connect(const wchar_t* server_guid)
 
         // 连接到 server
         std::shared_ptr<IPCBuffer> data(new IPCBuffer);
-        data->PushBack(IPCValue(GetClientID()));
+        data->PushFront(IPCValue((int)ipc->GetRecvWindow()));
         PostIPCMessage(WM_IPC_CLIENT_CONNECT, data);
 
         result = true;
@@ -104,6 +104,15 @@ bool IPCClient::PostIPCMessage(unsigned int message, std::shared_ptr<IPCBuffer> 
             break;
         }
 
+        // 把 client_id 附加到 data 里面
+        if (data == nullptr)
+        {
+            data.reset(new IPCBuffer);
+        }
+
+        data->PushFront(IPCValue(GetClientID()));
+
+        // 发送消息
         IPC* ipc = IPC::GetInstance();
         result = ipc->PostIPCMessage(server_recv_window_, message, data);
 
@@ -131,6 +140,15 @@ bool IPCClient::SendIPCMessage(
             break;
         }
 
+        // 把 client_id 附加到 data 里面
+        if (data == nullptr)
+        {
+            data.reset(new IPCBuffer);
+        }
+
+        data->PushFront(IPCValue(GetClientID()));
+
+        // 发送消息
         IPC* ipc = IPC::GetInstance();
         result = ipc->SendIPCMessage(server_recv_window_, message, data, time_out);
 

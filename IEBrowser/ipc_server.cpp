@@ -148,6 +148,7 @@ void IPCServer::OnRecvIPCMessage(unsigned int message, std::shared_ptr<IPCBuffer
             break;
         }
 
+        // 获取 client_id
         IPCValue client_id_value = data->TakeFront();
         if (client_id_value.GetType() != IPCValue::VT_UINT)
         {
@@ -160,6 +161,25 @@ void IPCServer::OnRecvIPCMessage(unsigned int message, std::shared_ptr<IPCBuffer
         {
         case WM_IPC_CLIENT_CONNECT:
         {
+            // 获取 client_window
+            IPCValue client_window_value = data->TakeFront();
+            if (client_window_value.GetType() != IPCValue::VT_INT)
+            {
+                LOG_ERROR(L"take client_recv_window failed!");
+                break;
+            }
+
+            HWND client_window = (HWND)client_window_value.GetInt();
+            if (!::IsWindow(client_window))
+            {
+                LOG_ERROR(L"client_window is not window, client_window = 0x%08x", client_window);
+                break;
+            }
+
+            // 保存 client_window
+            client_window_map_[client_id] = client_window;
+
+            // 触发委托
             delegate_->OnClientConnected(client_id);
             break;
         }

@@ -68,6 +68,11 @@ public:
     void SetDelegate(Delegate* delegate);
 
     ///
+    // 获取接收窗口句柄
+    ///
+    HWND GetRecvWindow();
+
+    ///
     // 向指定窗口投递一条消息
     ///
     bool PostIPCMessage(HWND recv_window, unsigned int message, std::shared_ptr<IPCBuffer> data);

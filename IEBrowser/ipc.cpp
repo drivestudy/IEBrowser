@@ -89,6 +89,11 @@ void IPC::SetDelegate(Delegate * delegate)
     delegate_ = delegate;
 }
 
+HWND IPC::GetRecvWindow()
+{
+    return recv_window_;
+}
+
 bool IPC::PostIPCMessage(HWND recv_window, unsigned int message, std::shared_ptr<IPCBuffer> data)
 {
     LOG_ENTER_EX(L"recv_window = 0x%08x, message = %d", recv_window, message);
@@ -106,7 +111,7 @@ bool IPC::SendIPCMessage(
     std::shared_ptr<IPCBuffer> data,
     unsigned int time_out)
 {
-    LOG_ENTER_EX(L"recv_window = 0x%08x, message = %d, time_out = %d", recv_window, message);
+    LOG_ENTER_EX(L"recv_window = 0x%08x, message = %d, time_out = %d", recv_window, message, time_out);
 
     bool result = false;
 
@@ -184,7 +189,7 @@ bool IPC::CreateRecvWindow(const wchar_t * recv_window_class_name, const wchar_t
 
     } while (false);
 
-    LOG_EXIT_EX(L"result = %d", result);
+    LOG_EXIT_EX(L"result = %d, recv_window_ = 0x%08x", result, recv_window_);
 
     return result;
 }
